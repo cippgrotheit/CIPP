@@ -1,4 +1,4 @@
-name: Sync CIPp Fork on Version Change
+name: Sync CIPP Fork daily on Version Change
 
 on:
   # Täglich um 07:30 (UTC; ggf. anpassen, falls du eine andere Zeitzone nutzen möchtest)
