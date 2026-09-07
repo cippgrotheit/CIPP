@@ -1,22 +1,9 @@
-import { Layout as DashboardLayout } from '../../../../../layouts/index.js'
+import { Layout as DashboardLayout } from '../../../../../layouts/index'
+import { CippIcons } from '../../../../../utils/icon-registry'
 import { useSettings } from '../../../../../hooks/use-settings'
 import { useRouter } from 'next/router'
 import { ApiGetCall, ApiPostCall } from '../../../../../api/ApiCall'
 import CippFormSkeleton from '../../../../../components/CippFormPages/CippFormSkeleton'
-import CalendarIcon from '@heroicons/react/24/outline/CalendarIcon'
-import {
-  PhoneAndroid,
-  Computer,
-  PhoneIphone,
-  Laptop,
-  Launch,
-  Security,
-  CheckCircle,
-  Warning,
-  Sync,
-  Fingerprint,
-  Group,
-} from '@mui/icons-material'
 import { HeaderedTabbedLayout } from '../../../../../layouts/HeaderedTabbedLayout'
 import { CippEntitySwitcher } from '../../../../../components/CippComponents/CippEntitySwitcher'
 import tabOptions from './tabOptions'
@@ -34,7 +21,6 @@ import { CippDataTable } from '../../../../../components/CippTable/CippDataTable
 import { CippHead } from '../../../../../components/CippComponents/CippHead'
 import { Button } from '@mui/material'
 import { getCippFormatting } from '../../../../../utils/get-cipp-formatting'
-import { PencilIcon, EyeIcon } from '@heroicons/react/24/outline'
 
 const Page = () => {
   const userSettingsDefaults = useSettings()
@@ -61,6 +47,7 @@ const Page = () => {
   const deviceBulkRequest = ApiPostCall({
     urlFromData: true,
   })
+  const bulkFetchedForId = useRef(null)
 
   // Handle response structure - ListGraphRequest may wrap single items in Results array
   // Try Results array first, then Results as object, then data directly
@@ -114,11 +101,12 @@ const Page = () => {
       })
     }
 
+    bulkFetchedForId.current = deviceId
     deviceBulkRequest.mutate({
       url: '/api/ListGraphBulkRequest',
       data: {
         Requests: requests,
-        tenantFilter: userSettingsDefaults.currentTenant,
+        tenantFilter: router.query.tenantFilter ?? userSettingsDefaults.currentTenant,
       },
     })
   }
@@ -129,7 +117,7 @@ const Page = () => {
       deviceId &&
       userSettingsDefaults.currentTenant &&
       deviceRequest.isSuccess &&
-      !deviceBulkRequest.isSuccess
+      bulkFetchedForId.current !== deviceId
     ) {
       refreshFunction()
     }
@@ -137,7 +125,6 @@ const Page = () => {
     deviceId,
     userSettingsDefaults.currentTenant,
     deviceRequest.isSuccess,
-    deviceBulkRequest.isSuccess,
   ])
 
   const bulkData = deviceBulkRequest?.data?.data ?? []
@@ -166,15 +153,15 @@ const Page = () => {
   const subtitle = deviceRequest.isSuccess
     ? [
         {
-          icon: <Computer />,
+          icon: <CippIcons.Computer />,
           text: <CippCopyToClipBoard type="chip" text={deviceData?.deviceName} />,
         },
         {
-          icon: <Fingerprint />,
+          icon: <CippIcons.Fingerprint />,
           text: <CippCopyToClipBoard type="chip" text={deviceData?.id} />,
         },
         {
-          icon: <CalendarIcon />,
+          icon: <CippIcons.CalendarIcon />,
           text: (
             <>
               Last Sync: <CippTimeAgo data={deviceData?.lastSyncDateTime} />
@@ -182,7 +169,7 @@ const Page = () => {
           ),
         },
         {
-          icon: <Launch style={{ color: '#667085' }} />,
+          icon: <CippIcons.Launch />,
           text: (
             <Button
               color="muted"
@@ -207,12 +194,12 @@ const Page = () => {
 
   // Get device icon based on OS
   const getDeviceIcon = () => {
-    if (!data?.operatingSystem) return <Computer />
+    if (!data?.operatingSystem) return <CippIcons.Computer />
     const os = data.operatingSystem.toLowerCase()
-    if (os.includes('android')) return <PhoneAndroid />
-    if (os.includes('ios') || os.includes('iphone') || os.includes('ipad')) return <PhoneIphone />
-    if (os.includes('windows') || os.includes('macos')) return <Laptop />
-    return <Computer />
+    if (os.includes('android')) return <CippIcons.PhoneAndroid />
+    if (os.includes('ios') || os.includes('iphone') || os.includes('ipad')) return <CippIcons.PhoneIphone />
+    if (os.includes('windows') || os.includes('macos')) return <CippIcons.Laptop />
+    return <CippIcons.Computer />
   }
 
   // Prepare compliance policy items
@@ -221,7 +208,7 @@ const Page = () => {
     compliancePolicyItems = deviceCompliance.map((policy, index) => ({
       id: index,
       cardLabelBox: {
-        cardLabelBoxHeader: policy.complianceState === 'compliant' ? <CheckCircle /> : <Warning />,
+        cardLabelBoxHeader: policy.complianceState === 'compliant' ? <CippIcons.CheckCircle /> : <CippIcons.Warning />,
       },
       text: policy.displayName || 'Unknown Policy',
       subtext: `State: ${policy.complianceState || 'Unknown'}`,
@@ -270,7 +257,7 @@ const Page = () => {
     configurationPolicyItems = deviceConfiguration.map((policy, index) => ({
       id: index,
       cardLabelBox: {
-        cardLabelBoxHeader: policy.state === 'compliant' ? <CheckCircle /> : <Warning />,
+        cardLabelBoxHeader: policy.state === 'compliant' ? <CippIcons.CheckCircle /> : <CippIcons.Warning />,
       },
       text: policy.displayName || 'Unknown Policy',
       subtext: `State: ${policy.state || 'Unknown'}`,
@@ -320,7 +307,7 @@ const Page = () => {
       {
         id: 1,
         cardLabelBox: {
-          cardLabelBoxHeader: <CheckCircle />,
+          cardLabelBoxHeader: <CippIcons.CheckCircle />,
         },
         text: 'Detected Applications',
         subtext: `${detectedApps.length} application(s) detected`,
@@ -368,7 +355,7 @@ const Page = () => {
       {
         id: 1,
         cardLabelBox: {
-          cardLabelBoxHeader: <CheckCircle />,
+          cardLabelBoxHeader: <CippIcons.CheckCircle />,
         },
         text: 'Device Users',
         subtext: `${users.length} user(s) associated with this device`,
@@ -382,9 +369,10 @@ const Page = () => {
           refreshFunction: refreshFunction,
           actions: [
             {
-              icon: <EyeIcon />,
+              icon: <CippIcons.EyeIcon />,
               label: 'View User',
               link: `/identity/administration/users/user?userId=[id]&tenantFilter=${userSettingsDefaults.currentTenant}`,
+              pinned: true,
             },
           ],
         },
@@ -423,7 +411,7 @@ const Page = () => {
           {
             id: 1,
             cardLabelBox: {
-              cardLabelBoxHeader: <Group />,
+              cardLabelBoxHeader: <CippIcons.Group />,
             },
             text: 'Groups',
             subtext: 'List of groups the device is a member of',
@@ -437,9 +425,10 @@ const Page = () => {
               hideTitle: true,
               actions: [
                 {
-                  icon: <PencilIcon />,
+                  icon: <CippIcons.Edit />,
                   label: 'Edit Group',
                   link: '/identity/administration/groups/edit?groupId=[id]&groupType=[calculatedGroupType]',
+                  pinned: true,
                 },
               ],
               data: deviceMemberOf?.filter(
@@ -528,7 +517,7 @@ const Page = () => {
                           refreshFunction()
                         }}
                       >
-                        <Sync fontSize="small" />
+                        <CippIcons.Sync fontSize="small" />
                       </IconButton>
                     </Tooltip>
                   }
@@ -538,10 +527,14 @@ const Page = () => {
                   <PropertyListItem
                     divider
                     value={
-                      <Stack alignItems="center" spacing={1}>
+                      <Stack spacing={1} sx={{
+                        alignItems: "center"
+                      }}>
                         <SvgIcon sx={{ fontSize: 64 }}>{getDeviceIcon()}</SvgIcon>
                         <Typography variant="h6">{data?.deviceName || 'N/A'}</Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" sx={{
+                          color: "text.secondary"
+                        }}>
                           {data?.manufacturer} {data?.model}
                         </Typography>
                       </Stack>
@@ -553,7 +546,9 @@ const Page = () => {
                     value={
                       <Grid container spacing={2}>
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="inherit" color="text.primary" gutterBottom>
+                          <Typography variant="inherit" gutterBottom sx={{
+                            color: "text.primary"
+                          }}>
                             Device Name:
                           </Typography>
                           <Typography variant="inherit">
@@ -561,7 +556,9 @@ const Page = () => {
                           </Typography>
                         </Grid>
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="inherit" color="text.primary" gutterBottom>
+                          <Typography variant="inherit" gutterBottom sx={{
+                            color: "text.primary"
+                          }}>
                             Device ID:
                           </Typography>
                           <Typography variant="inherit">
@@ -569,7 +566,9 @@ const Page = () => {
                           </Typography>
                         </Grid>
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="inherit" color="text.primary" gutterBottom>
+                          <Typography variant="inherit" gutterBottom sx={{
+                            color: "text.primary"
+                          }}>
                             Operating System:
                           </Typography>
                           <Typography variant="inherit">
@@ -577,25 +576,33 @@ const Page = () => {
                           </Typography>
                         </Grid>
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="inherit" color="text.primary" gutterBottom>
+                          <Typography variant="inherit" gutterBottom sx={{
+                            color: "text.primary"
+                          }}>
                             Manufacturer:
                           </Typography>
                           <Typography variant="inherit">{data?.manufacturer || 'N/A'}</Typography>
                         </Grid>
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="inherit" color="text.primary" gutterBottom>
+                          <Typography variant="inherit" gutterBottom sx={{
+                            color: "text.primary"
+                          }}>
                             Model:
                           </Typography>
                           <Typography variant="inherit">{data?.model || 'N/A'}</Typography>
                         </Grid>
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="inherit" color="text.primary" gutterBottom>
+                          <Typography variant="inherit" gutterBottom sx={{
+                            color: "text.primary"
+                          }}>
                             Serial Number:
                           </Typography>
                           <Typography variant="inherit">{data?.serialNumber || 'N/A'}</Typography>
                         </Grid>
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="inherit" color="text.primary" gutterBottom>
+                          <Typography variant="inherit" gutterBottom sx={{
+                            color: "text.primary"
+                          }}>
                             Compliance State:
                           </Typography>
                           <Typography variant="inherit">
@@ -603,7 +610,9 @@ const Page = () => {
                           </Typography>
                         </Grid>
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="inherit" color="text.primary" gutterBottom>
+                          <Typography variant="inherit" gutterBottom sx={{
+                            color: "text.primary"
+                          }}>
                             Enrolled Date:
                           </Typography>
                           <Typography variant="inherit">
@@ -613,7 +622,9 @@ const Page = () => {
                           </Typography>
                         </Grid>
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="inherit" color="text.primary" gutterBottom>
+                          <Typography variant="inherit" gutterBottom sx={{
+                            color: "text.primary"
+                          }}>
                             Last Sync:
                           </Typography>
                           <Typography variant="inherit">
@@ -623,7 +634,9 @@ const Page = () => {
                           </Typography>
                         </Grid>
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="inherit" color="text.primary" gutterBottom>
+                          <Typography variant="inherit" gutterBottom sx={{
+                            color: "text.primary"
+                          }}>
                             Owner Type:
                           </Typography>
                           <Typography variant="inherit">
@@ -634,7 +647,9 @@ const Page = () => {
                           </Typography>
                         </Grid>
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="inherit" color="text.primary" gutterBottom>
+                          <Typography variant="inherit" gutterBottom sx={{
+                            color: "text.primary"
+                          }}>
                             Enrollment Type:
                           </Typography>
                           <Typography variant="inherit">
@@ -646,7 +661,9 @@ const Page = () => {
                         </Grid>
                         {data?.userPrincipalName && (
                           <Grid size={{ xs: 12 }}>
-                            <Typography variant="inherit" color="text.primary" gutterBottom>
+                            <Typography variant="inherit" gutterBottom sx={{
+                              color: "text.primary"
+                            }}>
                               Primary User:
                             </Typography>
                             <Typography variant="inherit">
@@ -657,7 +674,9 @@ const Page = () => {
                         )}
                         {data?.totalStorageSpaceInBytes && (
                           <Grid size={{ xs: 12 }}>
-                            <Typography variant="inherit" color="text.primary" gutterBottom>
+                            <Typography variant="inherit" gutterBottom sx={{
+                              color: "text.primary"
+                            }}>
                               Storage:
                             </Typography>
                             <Typography variant="inherit">
@@ -717,7 +736,7 @@ const Page = () => {
         </Box>
       )}
     </HeaderedTabbedLayout>
-  )
+  );
 }
 
 Page.getLayout = (page) => <DashboardLayout>{page}</DashboardLayout>

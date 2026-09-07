@@ -1,5 +1,5 @@
 import { Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
-import { Download, OpenInNew, PictureAsPdf } from '@mui/icons-material'
+import { CippIcons } from '../../utils/icon-registry'
 import { PDFViewer, usePDF } from '@react-pdf/renderer'
 import { useIsMobileLayout } from '../../hooks/use-breakpoint'
 
@@ -23,35 +23,56 @@ const MobileHandoff = ({ document, fileName, title, showDownload }) => {
 
   if (instance.loading) {
     return (
-      <Stack alignItems="center" justifyContent="center" spacing={2} sx={{ height: '100%', p: 3 }}>
+      <Stack
+        spacing={2}
+        sx={{
+          alignItems: "center",
+          justifyContent: "center",
+          height: '100%',
+          p: 3
+        }}>
         <CircularProgress />
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" sx={{
+          color: "text.secondary"
+        }}>
           Building report…
         </Typography>
       </Stack>
-    )
+    );
   }
 
   if (instance.error || !instance.url) {
     return (
-      <Stack alignItems="center" justifyContent="center" spacing={1} sx={{ height: '100%', p: 3 }}>
+      <Stack
+        spacing={1}
+        sx={{
+          alignItems: "center",
+          justifyContent: "center",
+          height: '100%',
+          p: 3
+        }}>
         <Typography variant="subtitle1">Report could not be generated</Typography>
-        <Typography variant="body2" color="text.secondary" align="center">
+        <Typography variant="body2" align="center" sx={{
+          color: "text.secondary"
+        }}>
           {instance.error ? String(instance.error) : 'No document was produced.'}
         </Typography>
       </Stack>
-    )
+    );
   }
 
   const size = formatSize(instance.blob?.size)
 
   return (
     <Stack
-      alignItems="center"
-      justifyContent="center"
       spacing={2}
-      sx={{ height: '100%', p: 3, textAlign: 'center' }}
-    >
+      sx={{
+        alignItems: "center",
+        justifyContent: "center",
+        height: '100%',
+        p: 3,
+        textAlign: 'center'
+      }}>
       <Box
         sx={{
           width: 72,
@@ -62,7 +83,7 @@ const MobileHandoff = ({ document, fileName, title, showDownload }) => {
           bgcolor: 'action.hover',
         }}
       >
-        <PictureAsPdf sx={{ fontSize: 34, color: 'text.secondary' }} />
+        <CippIcons.PictureAsPdf sx={{ fontSize: 34, color: 'text.secondary' }} />
       </Box>
 
       <Stack spacing={0.5} sx={{ minWidth: 0, maxWidth: '100%' }}>
@@ -70,7 +91,9 @@ const MobileHandoff = ({ document, fileName, title, showDownload }) => {
           {title ?? 'Report'}
         </Typography>
         {size && (
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{
+            color: "text.secondary"
+          }}>
             PDF · {size}
           </Typography>
         )}
@@ -83,7 +106,7 @@ const MobileHandoff = ({ document, fileName, title, showDownload }) => {
           target="_blank"
           rel="noopener noreferrer"
           variant="contained"
-          startIcon={<OpenInNew />}
+          startIcon={<CippIcons.Launch />}
           sx={{ minHeight: 44 }}
         >
           Open report
@@ -96,7 +119,7 @@ const MobileHandoff = ({ document, fileName, title, showDownload }) => {
             href={instance.url}
             download={fileName ?? 'report.pdf'}
             variant="outlined"
-            startIcon={<Download />}
+            startIcon={<CippIcons.Download />}
             sx={{ minHeight: 44 }}
           >
             Download
@@ -104,7 +127,7 @@ const MobileHandoff = ({ document, fileName, title, showDownload }) => {
         )}
       </Stack>
     </Stack>
-  )
+  );
 }
 
 /**

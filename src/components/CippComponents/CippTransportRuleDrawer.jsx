@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback, cloneElement } from "react";
+import { CippIcons } from "../../utils/icon-registry";
 import { Button, Divider, Typography, Alert, Box } from "@mui/material";
 import { Grid } from "@mui/system";
 import { useForm, useWatch } from "react-hook-form";
-import { RocketLaunch, Edit } from "@mui/icons-material";
 import { CippOffCanvas } from "./CippOffCanvas";
 import CippFormComponent from "./CippFormComponent";
 import { CippFormDomainSelector } from "./CippFormDomainSelector";
@@ -1385,9 +1385,9 @@ export const CippTransportRuleDrawer = ({
     <>
       {rowAction === false && !drawerVisible && (
         <PermissionButton
-          requiredPermissions={requiredPermissions}
+          {...(PermissionButton !== Button ? { requiredPermissions } : {})}
           onClick={() => setDrawerVisible(true)}
-          startIcon={isEditMode ? <Edit /> : <RocketLaunch />}
+          startIcon={isEditMode ? <CippIcons.Edit /> : <CippIcons.RocketLaunch />}
         >
           {buttonText}
         </PermissionButton>

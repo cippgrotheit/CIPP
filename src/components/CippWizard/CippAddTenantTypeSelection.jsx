@@ -1,7 +1,7 @@
 import { Avatar, Card, CardContent, Stack, SvgIcon, Typography } from '@mui/material'
+import { CippIcons } from '../../utils/icon-registry'
 import { useState, useEffect } from 'react'
 import { CippWizardStepButtons } from './CippWizardStepButtons'
-import { BuildingOfficeIcon, CloudIcon, LinkIcon } from '@heroicons/react/24/outline'
 import { ApiGetCall } from '../../api/ApiCall'
 
 export const CippAddTenantTypeSelection = (props) => {
@@ -85,7 +85,7 @@ export const CippAddTenantTypeSelection = (props) => {
       label: 'Add GDAP Tenant',
       description:
         "Select this option to add a new tenant to your Microsoft Partner center environment. We'll walk you through the steps of setting up GDAP.",
-      icon: <CloudIcon />,
+      icon: <CippIcons.CloudIcon />,
       partnerOnly: true,
     },
     {
@@ -93,7 +93,7 @@ export const CippAddTenantTypeSelection = (props) => {
       label: 'Add Direct Tenant',
       description:
         'Select this option if you are not a Microsoft partner, or want to add a tenant outside of the scope of your partner center.',
-      icon: <BuildingOfficeIcon />,
+      icon: <CippIcons.BuildingOfficeIcon />,
       partnerOnly: false,
     },
     {
@@ -101,7 +101,7 @@ export const CippAddTenantTypeSelection = (props) => {
       label: 'Get Reseller Invite Link',
       description:
         'Generate a reseller relationship invite link to send to a customer. This does not add the tenant to CIPP, but may be used by other vendors to populate their customer list.',
-      icon: <LinkIcon />,
+      icon: <CippIcons.LinkIcon />,
       partnerOnly: true,
     },
   ]
@@ -110,7 +110,9 @@ export const CippAddTenantTypeSelection = (props) => {
     <Stack spacing={3}>
       <Stack spacing={1}>
         <Typography variant="h6">Select Tenant Type</Typography>
-        <Typography color="text.secondary" variant="body2">
+        <Typography variant="body2" sx={{
+          color: "text.secondary"
+        }}>
           Choose how you want to add the tenant to your CIPP environment.
         </Typography>
       </Stack>
@@ -137,7 +139,9 @@ export const CippAddTenantTypeSelection = (props) => {
               }}
             >
               <CardContent>
-                <Stack alignItems="center" direction="row" spacing={2}>
+                <Stack direction="row" spacing={2} sx={{
+                  alignItems: "center"
+                }}>
                   <Avatar
                     variant="rounded"
                     sx={{
@@ -151,12 +155,14 @@ export const CippAddTenantTypeSelection = (props) => {
                   </Avatar>
                   <Stack spacing={1}>
                     <Typography variant="h6">{option.label}</Typography>
-                    <Typography color="text.secondary">{option.description}</Typography>
+                    <Typography sx={{
+                      color: "text.secondary"
+                    }}>{option.description}</Typography>
                   </Stack>
                 </Stack>
               </CardContent>
             </Card>
-          )
+          );
         })}
       </Stack>
       <CippWizardStepButtons
@@ -166,7 +172,7 @@ export const CippAddTenantTypeSelection = (props) => {
         formControl={formControl}
       />
     </Stack>
-  )
+  );
 }
 
 export default CippAddTenantTypeSelection

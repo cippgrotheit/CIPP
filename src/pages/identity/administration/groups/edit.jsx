@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Box, Button, Divider, Typography, Alert } from "@mui/material";
 import { Grid } from "@mui/system";
 import { useForm } from "react-hook-form";
-import { Layout as DashboardLayout } from "../../../../layouts/index.js";
+import { Layout as DashboardLayout } from "../../../../layouts/index";
 import CippFormPage from "../../../../components/CippFormPages/CippFormPage";
 import CippFormComponent from "../../../../components/CippComponents/CippFormComponent";
 import { CippFormUserSelector } from "../../../../components/CippComponents/CippFormUserSelector";
@@ -161,8 +161,13 @@ const EditGroup = () => {
       <CippFormPage
         formControl={formControl}
         queryKey={[`ListGroups-${groupId}`, `Licenses-${tenantFilter}`]}
-        title={`Group - ${groupInfo.data?.groupInfo?.displayName || ''}`}
+        title={
+          groupInfo.data?.groupInfo?.displayName
+            ? `Group - ${groupInfo.data.groupInfo.displayName}`
+            : 'Group'
+        }
         formPageType="Edit"
+        hideSubmit={!groupId}
         backButtonTitle="Group Overview"
         postUrl="/api/EditGroup"
         customDataformatter={customDataFormatter}
@@ -179,13 +184,19 @@ const EditGroup = () => {
           </>
         }
       >
+        {!groupId && (
+          <Alert severity="info" sx={{ mb: 1 }}>
+            No group selected. Open this page from the Groups list to edit a group.
+          </Alert>
+        )}
         {groupInfo.isSuccess && groupInfo.data?.groupInfo?.onPremisesSyncEnabled && (
           <Alert severity="error" sx={{ mb: 1 }}>
             This group is synced from on-premises Active Directory. Changes should be made in the
             on-premises environment instead.
           </Alert>
         )}
-        {showMembershipTable ? (
+        {groupId &&
+          (showMembershipTable ? (
           <Box sx={{ my: 2 }}>
             <CippDataTable
               data={combinedData}
@@ -516,7 +527,12 @@ const EditGroup = () => {
                 <>
                   <Grid size={{ xs: 12 }}>
                     <Typography variant="h6">Licenses</Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: "text.secondary",
+                        mb: 1
+                      }}>
                       Licenses assigned to this group are automatically applied to all members.
                       Changes can take 2-5 minutes to propagate.
                     </Typography>
@@ -569,10 +585,10 @@ const EditGroup = () => {
               )}
             </Grid>
           </Box>
-        )}
+          ))}
       </CippFormPage>
     </>
-  )
+  );
 }
 
 EditGroup.getLayout = (page) => <DashboardLayout>{page}</DashboardLayout>

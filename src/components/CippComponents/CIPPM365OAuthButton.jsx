@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
+import { CippIcons } from '../../utils/icon-registry'
 import { Alert, Button, Typography, CircularProgress, Box } from '@mui/material'
-import { Microsoft, Login, Refresh } from '@mui/icons-material'
 import { ApiGetCall } from '../../api/ApiCall'
 import { CippCopyToClipBoard } from './CippCopyToClipboard'
 import { CippApiDialog } from './CippApiDialog'
@@ -311,12 +311,11 @@ export const CIPPM365OAuthButton = ({
           tenantId = idTokenPayload.tid
         }
 
-        if (username && username.includes('@') && username.includes('.onmicrosoft.com')) {
-          onmicrosoftDomain = username.split('@')[1]
-        } else if (idTokenPayload.iss) {
-          const issuerMatch = idTokenPayload.iss.match(/https:\/\/sts\.windows\.net\/([^/]+)\//)
-          if (issuerMatch && issuerMatch[1]) {
-          }
+        // Only accept the domain part when it actually ends in .onmicrosoft.com; a plain
+        // substring check would also match user@evil.onmicrosoft.com.example.
+        const domainPart = username && username.includes('@') ? username.split('@')[1] : ''
+        if (domainPart && domainPart.toLowerCase().endsWith('.onmicrosoft.com')) {
+          onmicrosoftDomain = domainPart
         }
         setIsServiceAccount(checkIsServiceAccount(username))
       } catch (error) {}
@@ -743,7 +742,9 @@ export const CIPPM365OAuthButton = ({
         )}
 
       {showResults && (
-        <Box mb={2}>
+        <Box sx={{
+          mb: 2
+        }}>
           {deviceCodeInfo ? (
             <Alert severity="info">
               <Typography variant="subtitle2">Application Creation</Typography>
@@ -783,7 +784,9 @@ export const CIPPM365OAuthButton = ({
                   </>
                 )}
               </Typography>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="caption" sx={{
+                color: "text.secondary"
+              }}>
                 Code expires in {Math.round(deviceCodeInfo.expires_in / 60)} minutes
               </Typography>
             </Alert>
@@ -805,7 +808,9 @@ export const CIPPM365OAuthButton = ({
                       </>
                     )}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography variant="caption" sx={{
+                    color: "text.secondary"
+                  }}>
                     Refresh token expires: {tokens.refreshTokenExpiresOn?.toLocaleString()}
                   </Typography>
                 </Alert>
@@ -831,10 +836,14 @@ export const CIPPM365OAuthButton = ({
                 Authentication Error: {authError.errorCode}
               </Typography>
               <Typography variant="body2">{authError.errorMessage}</Typography>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="caption" sx={{
+                color: "text.secondary"
+              }}>
                 Time: {authError.timestamp}
               </Typography>
-              <Box mt={1}>
+              <Box sx={{
+                mt: 1
+              }}>
                 <Button size="small" variant="outlined" color="error" onClick={handleCloseError}>
                   Dismiss
                 </Button>
@@ -897,13 +906,13 @@ export const CIPPM365OAuthButton = ({
         color="primary"
         startIcon={
           canRestartDeviceLogin ? (
-            <Refresh />
+            <CippIcons.Refresh />
           ) : authInProgress || codeRetrievalInProgress ? (
             <CircularProgress size="1rem" color="inherit" />
           ) : tokens.accessToken ? (
-            <Refresh />
+            <CippIcons.Refresh />
           ) : (
-            <Microsoft />
+            <CippIcons.Microsoft />
           )
         }
       >
@@ -916,5 +925,5 @@ export const CIPPM365OAuthButton = ({
               : buttonText}
       </Button>
     </div>
-  )
+  );
 }

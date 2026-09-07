@@ -1,4 +1,5 @@
 import React from "react";
+import { CippIcons } from "../../utils/icon-registry";
 import {
   Box,
   Typography,
@@ -10,7 +11,6 @@ import {
   useTheme,
   Stack,
 } from "@mui/material";
-import { Groups, Business, Rule, Info } from "@mui/icons-material";
 import { CippDataTable } from "../CippTable/CippDataTable";
 
 export const CippTenantGroupOffCanvas = ({ data }) => {
@@ -114,7 +114,9 @@ export const CippTenantGroupOffCanvas = ({ data }) => {
           borderRadius: 1,
         }}
       >
-        <Typography variant="body2" color="text.secondary" gutterBottom>
+        <Typography variant="body2" gutterBottom sx={{
+          color: "text.secondary"
+        }}>
           Rule {rules.length > 1 ? `${index + 1}:` : "Configuration:"}
         </Typography>
         <Typography variant="body1">
@@ -161,7 +163,7 @@ export const CippTenantGroupOffCanvas = ({ data }) => {
             gutterBottom
             sx={{ display: "flex", alignItems: "center", gap: 1 }}
           >
-            <Rule color="primary" />
+            <CippIcons.Rule color="primary" />
             Dynamic Rules
             {rules.length > 1 && (
               <Chip
@@ -202,7 +204,7 @@ export const CippTenantGroupOffCanvas = ({ data }) => {
           }}
           title={"Members"}
           cardHeaderProps={{
-            avatar: <Business color="primary" />,
+            avatar: <CippIcons.Business color="primary" />,
           }}
         />
       </Box>
@@ -214,7 +216,7 @@ export const CippTenantGroupOffCanvas = ({ data }) => {
       {/* Header Section */}
       <Box sx={{ mb: 3 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-          <Groups color="primary" fontSize="large" />
+          <CippIcons.Groups color="primary" fontSize="large" />
           <Box>
             <Typography variant="h4" gutterBottom>
               {data.Name}
@@ -225,7 +227,9 @@ export const CippTenantGroupOffCanvas = ({ data }) => {
                 color={isDynamic ? "primary" : "secondary"}
                 variant="filled"
               />
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" sx={{
+                color: "text.secondary"
+              }}>
                 ID: {data.Id}
               </Typography>
             </Box>
@@ -256,7 +260,7 @@ export const CippTenantGroupOffCanvas = ({ data }) => {
               gutterBottom
               sx={{ display: "flex", alignItems: "center", gap: 1 }}
             >
-              <Info color="primary" />
+              <CippIcons.Info color="primary" />
               Additional Information
             </Typography>
             <Box
@@ -267,13 +271,17 @@ export const CippTenantGroupOffCanvas = ({ data }) => {
               }}
             >
               <Box>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" sx={{
+                  color: "text.secondary"
+                }}>
                   Group Type
                 </Typography>
                 <Typography variant="body1">{isDynamic ? "Dynamic" : "Static"}</Typography>
               </Box>
               <Box>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" sx={{
+                  color: "text.secondary"
+                }}>
                   Member Count
                 </Typography>
                 <Typography variant="body1">
@@ -283,7 +291,9 @@ export const CippTenantGroupOffCanvas = ({ data }) => {
               {isDynamic && (
                 <>
                   <Box>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" sx={{
+                      color: "text.secondary"
+                    }}>
                       Rule Logic
                     </Typography>
                     <Typography variant="body1">
@@ -291,7 +301,9 @@ export const CippTenantGroupOffCanvas = ({ data }) => {
                     </Typography>
                   </Box>
                   <Box>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" sx={{
+                      color: "text.secondary"
+                    }}>
                       Has Rules
                     </Typography>
                     <Typography variant="body1">{hasDynamicRules ? "Yes" : "No"}</Typography>

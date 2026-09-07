@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
+import { CippIcons } from '../../utils/icon-registry'
 import { Button, Stack } from '@mui/material'
-import { RocketLaunch } from '@mui/icons-material'
 import { useForm, useWatch } from 'react-hook-form'
 import { CippOffCanvas } from './CippOffCanvas'
 import { ApiGetCall, ApiPostCall } from '../../api/ApiCall'
@@ -20,7 +20,8 @@ export const CippCADeployDrawer = ({
   onClose = null, // External close handler
 }) => {
   const [internalDrawerVisible, setInternalDrawerVisible] = useState(false)
-  const formControl = useForm()
+  // Replace by display name is the only option that deploys a name-based template.
+  const formControl = useForm({ defaultValues: { replacename: 'displayName' } })
   const tenantFilter = useSettings()?.tenantFilter
   const CATemplates = ApiGetCall({ url: '/api/ListCATemplates', queryKey: 'CATemplates' })
   const [JSONData, setJSONData] = useState()
@@ -92,9 +93,9 @@ export const CippCADeployDrawer = ({
     <>
       {!isExternallyControlled && (
         <PermissionButton
-          requiredPermissions={requiredPermissions}
+          {...(PermissionButton !== Button ? { requiredPermissions } : {})}
           onClick={() => setInternalDrawerVisible(true)}
-          startIcon={<RocketLaunch />}
+          startIcon={<CippIcons.RocketLaunch />}
         >
           {buttonText}
         </PermissionButton>
@@ -107,7 +108,9 @@ export const CippCADeployDrawer = ({
         footer={
           <Stack spacing={2}>
             <CippApiResults apiObject={deployPolicy} />
-            <Stack direction="row" justifyContent="flex-start" spacing={2}>
+            <Stack direction="row" spacing={2} sx={{
+              justifyContent: "flex-start"
+            }}>
               <Button
                 variant="contained"
                 color="primary"
@@ -227,5 +230,5 @@ export const CippCADeployDrawer = ({
         </Stack>
       </CippOffCanvas>
     </>
-  )
+  );
 }

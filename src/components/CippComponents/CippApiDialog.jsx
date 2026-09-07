@@ -149,8 +149,10 @@ export const CippApiDialog = (props) => {
 
   const tenantFilter = useSettings().currentTenant
 
-  const handleActionClick = (row, action, formData) => {
+  const handleActionClick = (row, action, rawFormData) => {
     setIsFormSubmitted(true)
+    // The typed-confirmation field only gates the submit button; it never reaches the API.
+    const { __confirmPhrase, ...formData } = rawFormData ?? {}
     const resolvedFormData = mergeCsvFormFields(formData, fields)
     let finalData = {}
     let isBulkRequest = false
@@ -313,14 +315,23 @@ export const CippApiDialog = (props) => {
       !linkOpenedRef.current
     ) {
       linkOpenedRef.current = true
-      const linkWithData = api.link.replace(
-        /\[([^\]]+)\]/g,
-        (_, key) => getRawNestedValue(row, key) || `[${key}]`
-      )
-      if (linkWithData.startsWith('/') && !api?.external) {
-        router.push(linkWithData, undefined, { shallow: true })
+      const placeholder = /\[([^\]]+)\]/g
+      const hasValue = (value) => value !== undefined && value !== null && value !== ''
+      if (api.link.startsWith('/') && !api?.external) {
+        // Internal routes only ever substitute ids and query values, so encode them: the row
+        // is tenant data and must not be able to inject path segments or a second origin.
+        const internalLink = api.link.replace(placeholder, (_, key) => {
+          const value = getRawNestedValue(row, key)
+          return hasValue(value) ? encodeURIComponent(String(value)) : `[${key}]`
+        })
+        router.push(internalLink, undefined, { shallow: true })
       } else {
-        window.open(linkWithData, api.target || '_blank')
+        // External links may substitute a whole URL (e.g. [webUrl]) and are left as-is.
+        const externalLink = api.link.replace(placeholder, (_, key) => {
+          const value = getRawNestedValue(row, key)
+          return hasValue(value) ? value : `[${key}]`
+        })
+        window.open(externalLink, api.target || '_blank')
       }
       createDialog.handleClose()
     }
@@ -370,9 +381,9 @@ export const CippApiDialog = (props) => {
             : element.replace(
                 /\[([^\]]+)\]/g,
                 (_, key) => getNestedValue(row[0], key) || `[${key}]`
-              )
+              );
         }
-        return element.replace(/\[([^\]]+)\]/g, (_, key) => getNestedValue(row, key) || `[${key}]`)
+        return element.replace(/\[([^\]]+)\]/g, (_, key) => getNestedValue(row, key) || `[${key}]`);
       }
       if (React.isValidElement(element)) {
         const newChildren = React.Children.map(element.props.children, replaceTextInElement)
@@ -381,6 +392,27 @@ export const CippApiDialog = (props) => {
       return element
     }
     confirmText = replaceTextInElement(api?.confirmText)
+  }
+
+  // Optional typed confirmation: api.confirmPhrase is a string (with [field] interpolation from
+  // the row) or a function of the row / selected rows returning the phrase, or null/'' to skip.
+  // While set, the Confirm button stays disabled until the user types the phrase exactly.
+  let confirmPhrase = null
+  if (api?.confirmPhrase) {
+    if (typeof api.confirmPhrase === 'function') {
+      confirmPhrase = api.confirmPhrase(row)
+    } else if (Array.isArray(row)) {
+      confirmPhrase =
+        row.length > 1
+          ? `CONFIRM ${row.length} ITEMS`
+          : api.confirmPhrase.replace(/\[([^\]]+)\]/g, (_, key) => getNestedValue(row[0], key) || '')
+    } else {
+      confirmPhrase = api.confirmPhrase.replace(
+        /\[([^\]]+)\]/g,
+        (_, key) => getNestedValue(row, key) || ''
+      )
+    }
+    if (typeof confirmPhrase !== 'string' || confirmPhrase.trim() === '') confirmPhrase = null
   }
 
   return (
@@ -503,6 +535,22 @@ export const CippApiDialog = (props) => {
                 )}
               </Stack>
             </DialogContent>
+            {confirmPhrase && (
+              <DialogContent>
+                <CippFormComponent
+                  type="textField"
+                  name="__confirmPhrase"
+                  label={`Type ${confirmPhrase} to confirm`}
+                  formControl={formHook}
+                  autoComplete="off"
+                  validators={{
+                    validate: (value) =>
+                      (value ?? '').trim() === confirmPhrase ||
+                      `Type ${confirmPhrase} exactly to enable Confirm`,
+                  }}
+                />
+              </DialogContent>
+            )}
             <DialogContent>
               <CippApiResults apiObject={{ ...selectedType, data: partialResults }} />
             </DialogContent>

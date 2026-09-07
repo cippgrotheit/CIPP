@@ -10,6 +10,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
+import { CippIcons } from '../../utils/icon-registry'
 import { visuallyHidden } from '@mui/utils'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
@@ -18,16 +19,6 @@ import { useSettings } from '../../hooks/use-settings'
 import { useIsMobileLayout } from '../../hooks/use-breakpoint'
 import { ApiGetCall } from '../../api/ApiCall.jsx'
 import { useQueryClient } from '@tanstack/react-query'
-import {
-  Add,
-  Check,
-  Delete as DeleteIcon,
-  Edit,
-  KeyboardArrowDown,
-  MoreVert,
-  Refresh as RefreshIcon,
-  Sync,
-} from '@mui/icons-material'
 import CippFormComponent from './CippFormComponent'
 import { CippAddTestReportDrawer } from './CippAddTestReportDrawer'
 import { CippApiDialog } from './CippApiDialog'
@@ -139,7 +130,7 @@ export const CippReportToolbar = () => {
       {...(withRefreshAction && {
         customAction: {
           position: 'outside',
-          icon: <RefreshIcon fontSize="small" />,
+          icon: <CippIcons.Refresh fontSize="small" />,
           tooltip: 'Refresh test suites',
           onClick: handleRefresh,
         },
@@ -179,14 +170,14 @@ export const CippReportToolbar = () => {
             <Box component="span" sx={visuallyHidden}>
               switch test suite
             </Box>
-            <KeyboardArrowDown sx={{ flexShrink: 0, ml: 'auto', opacity: 0.7, fontSize: 18 }} />
+            <CippIcons.KeyboardArrowDown sx={{ flexShrink: 0, ml: 'auto', opacity: 0.7, fontSize: 18 }} />
           </ButtonBase>
           <IconButton
             aria-label="Test suite actions"
             onClick={() => setActionSheetOpen(true)}
             sx={{ minWidth: 44, minHeight: 44 }}
           >
-            <MoreVert />
+            <CippIcons.MoreVert />
           </IconButton>
         </Box>
       ) : (
@@ -208,7 +199,7 @@ export const CippReportToolbar = () => {
               px: 2,
             }}
             onClick={openRefreshDialog}
-            startIcon={<RefreshIcon />}
+            startIcon={<CippIcons.Refresh />}
           >
             Refresh
           </Button>
@@ -238,7 +229,7 @@ export const CippReportToolbar = () => {
                 variant="contained"
                 color="error"
                 disabled={isBuiltIn}
-                startIcon={<DeleteIcon />}
+                startIcon={<CippIcons.Delete />}
                 sx={{
                   fontWeight: 'bold',
                   textTransform: 'none',
@@ -280,15 +271,17 @@ export const CippReportToolbar = () => {
                   <ListItemText
                     primary={report.name}
                     secondary={report.description}
-                    primaryTypographyProps={{ noWrap: true }}
-                    secondaryTypographyProps={{
-                      noWrap: true,
-                      variant: 'caption',
-                    }}
-                  />
-                  {selected && <Check fontSize="small" color="primary" sx={{ ml: 1 }} />}
+                    slotProps={{
+                      primary: { noWrap: true },
+
+                      secondary: {
+                        noWrap: true,
+                        variant: 'caption',
+                      }
+                    }} />
+                  {selected && <CippIcons.Check fontSize="small" color="primary" sx={{ ml: 1 }} />}
                 </ListItemButton>
-              )
+              );
             })}
           </List>
         </CippBottomSheet>
@@ -307,7 +300,7 @@ export const CippReportToolbar = () => {
                 onClick={() => actionSheet.run(() => setCreateDrawerOpen(true))}
               >
                 <ListItemIcon sx={{ minWidth: 40 }}>
-                  <Add fontSize="small" />
+                  <CippIcons.Add fontSize="small" />
                 </ListItemIcon>
                 <ListItemText primary="Create Suite" />
               </ListItemButton>
@@ -316,7 +309,7 @@ export const CippReportToolbar = () => {
                 onClick={() => actionSheet.run(() => openRefreshDialog())}
               >
                 <ListItemIcon sx={{ minWidth: 40 }}>
-                  <RefreshIcon fontSize="small" />
+                  <CippIcons.Refresh fontSize="small" />
                 </ListItemIcon>
                 <ListItemText primary="Run Tests" secondary="Refresh cached data or re-run tests" />
               </ListItemButton>
@@ -326,7 +319,7 @@ export const CippReportToolbar = () => {
                 onClick={() => actionSheet.run(() => setEditDrawerOpen(true))}
               >
                 <ListItemIcon sx={{ minWidth: 40 }}>
-                  <Edit fontSize="small" />
+                  <CippIcons.Edit fontSize="small" />
                 </ListItemIcon>
                 <ListItemText
                   primary="Edit Suite"
@@ -342,7 +335,7 @@ export const CippReportToolbar = () => {
                 onClick={() => actionSheet.run(() => openDeleteDialog())}
               >
                 <ListItemIcon sx={{ minWidth: 40, color: 'error.main' }}>
-                  <DeleteIcon fontSize="small" />
+                  <CippIcons.Delete fontSize="small" />
                 </ListItemIcon>
                 <ListItemText
                   primary="Delete Suite"
@@ -354,7 +347,7 @@ export const CippReportToolbar = () => {
                 onClick={() => actionSheet.run(() => handleRefresh())}
               >
                 <ListItemIcon sx={{ minWidth: 40 }}>
-                  <Sync fontSize="small" />
+                  <CippIcons.Sync fontSize="small" />
                 </ListItemIcon>
                 <ListItemText primary="Reload suite list" />
               </ListItemButton>
@@ -414,5 +407,5 @@ export const CippReportToolbar = () => {
         }}
       />
     </>
-  )
+  );
 }

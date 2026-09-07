@@ -1,6 +1,6 @@
-import { Layout as DashboardLayout } from "../../../../layouts/index.js";
+import { Layout as DashboardLayout } from "../../../../layouts/index";
 import { CippTablePage } from "../../../../components/CippComponents/CippTablePage.jsx";
-import { Block, Check, LowPriority, Edit, DeleteForever, Policy, Book } from "@mui/icons-material";
+import { CippIcons } from "../../../../utils/icon-registry"
 import { Button } from "@mui/material";
 import Link from "next/link";
 
@@ -38,7 +38,8 @@ const Page = () => {
       {
         label: "Edit Safe Links Policy",
         link: "/security/safelinks/safelinks/edit?PolicyName=[PolicyName]&RuleName=[RuleName]&tenantFilter=[tenantFilter]",
-        icon: <Edit />,
+        pinned: true,
+        icon: <CippIcons.Edit />,
         color: "success",
         target: "_self",
         condition: (row) => !isMicrosoftManaged(row),
@@ -46,7 +47,7 @@ const Page = () => {
       {
         label: "Enable Rule",
         type: "POST",
-        icon: <Check />,
+        icon: <CippIcons.Check />,
         url: "/api/EditSafeLinksPolicy",
         data: {
           PolicyName: "PolicyName",
@@ -60,7 +61,7 @@ const Page = () => {
       {
         label: "Disable Rule",
         type: "POST",
-        icon: <Block />,
+        icon: <CippIcons.Block />,
         url: "/api/EditSafeLinksPolicy",
         data: {
           PolicyName: "PolicyName",
@@ -74,7 +75,7 @@ const Page = () => {
       {
         label: "Set Priority",
         type: "POST",
-        icon: <LowPriority />,
+        icon: <CippIcons.LowPriority />,
         url: "/api/EditSafeLinksPolicy",
         condition: (row) => !isMicrosoftManaged(row),
         data: {
@@ -106,14 +107,14 @@ const Page = () => {
         url: "/api/AddSafeLinksPolicyTemplate",
         postEntireRow: true,
         confirmText: "Are you sure you want to create a template based on this policy?",
-        icon: <Book />,
+        icon: <CippIcons.Book />,
         hideBulk: true,
         condition: (row) => !isMicrosoftManaged(row),
       },
       {
         label: "Delete Rule",
-        type: "GET",
-        icon: <DeleteForever />,
+        type: "POST",
+        icon: <CippIcons.Delete />,
         url: "/api/ExecDeleteSafeLinksPolicy",
         data: {
           RuleName: "RuleName",
@@ -169,7 +170,7 @@ const Page = () => {
       filters={filterList}
       cardButton={
         <>
-          <Button component={Link} href="/security/safelinks/safelinks/add" startIcon={<Policy />}>
+          <Button component={Link} href="/security/safelinks/safelinks/add" startIcon={<CippIcons.Policy />}>
             Add Safe Links Policy
           </Button>
         </>
@@ -178,5 +179,5 @@ const Page = () => {
   );
 };
 
-Page.getLayout = (page) => <DashboardLayout>{page}</DashboardLayout>;
+Page.getLayout = (page) => <DashboardLayout allTenantsSupport={false}>{page}</DashboardLayout>;
 export default Page;

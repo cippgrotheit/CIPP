@@ -39,11 +39,21 @@ const graphPresetResult = getResult({
 const emptyGetResult = getResult({ isSuccess: false })
 const tableData = paginatedResult(refreshRows)
 const slotsTableData = paginatedResult(rows)
+// idle (isSuccess:false) leaves a static-data table on its `data` prop, which is the only
+// path that renders row content in card view — a successful paginated result feeds the MRT
+// row model instead and card titles never mount in jsdom.
+const idlePaginated = paginatedResult([], { isSuccess: false })
 
 let presetsResult = emptyPresets
 api.get = (opts) => (opts.url === '/api/ListGraphExplorerPresets' ? presetsResult : emptyGetResult)
-// route by queryKey: SlotsTest* gets the 3-row fixture (incl. graph-preset key swap), preset-refetch tests keep 2-row
-api.paginated = (opts) => (opts.queryKey?.startsWith('SlotsTest') ? slotsTableData : tableData)
+// route by queryKey: SlotsTest* gets the 3-row fixture (incl. graph-preset key swap),
+// StaticData* stays idle so the data prop drives the table, everything else keeps the 2-row fixture
+api.paginated = (opts) =>
+  opts.queryKey?.startsWith('SlotsTest')
+    ? slotsTableData
+    : opts.queryKey?.startsWith('StaticData')
+      ? idlePaginated
+      : tableData
 api.post = postResult()
 
 // swaps presetsResult with a fresh getResult() call, mimics the identity-change a background refetch produces
@@ -409,5 +419,84 @@ describe('CIPPTableToptoolbar desktop export', () => {
 
     await user.click(screen.getByRole('menuitem', { name: 'View API Response' }))
     await screen.findByText('API Response')
+  })
+})
+
+describe('CIPPTableToptoolbar bulk noConfirm customFunction', () => {
+  it('passes the full selection once when multiPost is true', async () => {
+    const user = userEvent.setup()
+    const customFunction = vi.fn()
+
+    renderWithProviders(
+      <CippDataTable
+        viewMode="cards"
+        queryKey="StaticDataUsersMulti"
+        data={rows}
+        simpleColumns={['displayName', 'mail']}
+        title="Users"
+        maxHeightOffset="100px"
+        actions={[
+          {
+            label: 'Edit Properties',
+            multiPost: true,
+            noConfirm: true,
+            customFunction,
+          },
+        ]}
+      />
+    )
+    await screen.findByText('Users')
+
+    // card view: enter select mode, tick two rows, then dispatch via the mobile bulk sheet.
+    // The sheet and the desktop bulk menu share handleBulkAction, so this exercises the same
+    // multiPost branch. (jsdom has no width-based matchMedia, so the desktop table would
+    // virtualise the rows out of the DOM — card view is the only mode that renders them.)
+    await user.click(screen.getByRole('button', { name: 'Select' }))
+    await user.click(await screen.findByRole('checkbox', { name: 'Select Alice Smith' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Select Bob Johnson' }))
+    await user.click(screen.getByRole('button', { name: 'Actions' }))
+    await user.click(await screen.findByRole('button', { name: 'Edit Properties' }))
+
+    await waitFor(() => expect(customFunction).toHaveBeenCalledTimes(1))
+    const [passedUsers] = customFunction.mock.calls[0]
+    expect(Array.isArray(passedUsers)).toBe(true)
+    expect(passedUsers).toHaveLength(2)
+    expect(passedUsers.map((u) => u.displayName)).toEqual(['Alice Smith', 'Bob Johnson'])
+  })
+
+  it('still invokes customFunction once per row when multiPost is false', async () => {
+    const user = userEvent.setup()
+    const customFunction = vi.fn()
+
+    renderWithProviders(
+      <CippDataTable
+        viewMode="cards"
+        queryKey="StaticDataUsersPerRow"
+        data={rows}
+        simpleColumns={['displayName', 'mail']}
+        title="Users"
+        maxHeightOffset="100px"
+        actions={[
+          {
+            label: 'Per-row Action',
+            noConfirm: true,
+            customFunction,
+          },
+        ]}
+      />
+    )
+    await screen.findByText('Users')
+
+    // card view: enter select mode, tick two rows, then dispatch via the mobile bulk sheet.
+    // The sheet and the desktop bulk menu share handleBulkAction, so this exercises the same
+    // per-row branch. (jsdom has no width-based matchMedia, so the desktop table would
+    // virtualise the rows out of the DOM — card view is the only mode that renders them.)
+    await user.click(screen.getByRole('button', { name: 'Select' }))
+    await user.click(await screen.findByRole('checkbox', { name: 'Select Alice Smith' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Select Bob Johnson' }))
+    await user.click(screen.getByRole('button', { name: 'Actions' }))
+    await user.click(await screen.findByRole('button', { name: 'Per-row Action' }))
+
+    await waitFor(() => expect(customFunction).toHaveBeenCalledTimes(2))
   })
 })

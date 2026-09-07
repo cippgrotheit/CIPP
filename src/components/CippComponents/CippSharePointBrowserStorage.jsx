@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { CippIcons } from '../../utils/icon-registry'
 import PropTypes from 'prop-types'
 import {
   Alert,
@@ -24,17 +25,8 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import {
-  CleaningServices,
-  Close,
-  Refresh,
-  RestoreFromTrash,
-  Storage as StorageIcon,
-} from '@mui/icons-material'
-import { CippDataTable } from '../CippTable/CippDataTable'
 import { CippApiDialog } from './CippApiDialog'
-import CippFormComponent from './CippFormComponent'
-import { CippFormCondition } from './CippFormCondition'
+import { CippSharePointVersionCleanupFields, formatVersionPolicy } from './CippSharePointVersionCleanupFields'
 import { CippPropertyList } from './CippPropertyList'
 import { ApiGetCall, ApiPostCall } from '../../api/ApiCall'
 import { useDialog } from '../../hooks/use-dialog'
@@ -90,40 +82,6 @@ const toBytesFromMb = (mb) => {
   return num * 1024 * 1024
 }
 
-const formatVersionPolicy = (props) => {
-  if (!props || typeof props !== 'object') return null
-  if (props.InheritVersionPolicyFromTenant) return 'Tenant default'
-  const major =
-    props.MajorVersionLimit === null || props.MajorVersionLimit === undefined
-      ? null
-      : Number(props.MajorVersionLimit)
-  const days =
-    props.ExpireVersionsAfterDays === null || props.ExpireVersionsAfterDays === undefined
-      ? null
-      : Number(props.ExpireVersionsAfterDays)
-
-  if (props.EnableAutoExpirationVersionTrim) {
-    const parts = ['Auto trim']
-    if (major !== null && !Number.isNaN(major) && major > 0) {
-      parts.push(`${major.toLocaleString()} major`)
-    }
-    if (days !== null && !Number.isNaN(days) && days > 0) {
-      parts.push(`${days.toLocaleString()} days`)
-    }
-    return parts.join(' · ')
-  }
-
-  if (major !== null && !Number.isNaN(major)) {
-    if (major <= 0) return 'Unlimited / not set'
-    const label = `${major.toLocaleString()} major versions`
-    if (days !== null && !Number.isNaN(days) && days > 0) {
-      return `${label} · expire after ${days.toLocaleString()} days`
-    }
-    return label
-  }
-  return null
-}
-
 const jobStatusChip = (progress) => {
   if (!progress || typeof progress === 'string') {
     return { label: 'No job', color: 'default' }
@@ -145,86 +103,21 @@ const jobStatusChip = (progress) => {
   return { label: progress.Status, color: 'info' }
 }
 
-const VersionCleanupFields = ({ formHook }) => (
-  <>
-    <CippFormComponent
-      type="radio"
-      name="BatchDeleteMode"
-      label="Cleanup Mode"
-      formControl={formHook}
-      options={[
-        { label: 'Sync Policy — apply site version policy to existing versions', value: '2' },
-        {
-          label: 'Delete Older Than Days — remove versions older than a set number of days',
-          value: '0',
-        },
-        { label: 'Count Limits — keep a maximum number of major versions', value: '1' },
-      ]}
-    />
-    <CippFormCondition
-      field="BatchDeleteMode"
-      compareType="is"
-      compareValue="0"
-      formControl={formHook}
-    >
-      <CippFormComponent
-        type="number"
-        name="DeleteOlderThanDays"
-        label="Delete Versions Older Than (days)"
-        formControl={formHook}
-        validators={{
-          required: 'Please enter the number of days',
-          min: { value: 30, message: 'SharePoint requires at least 30 days' },
-        }}
-      />
-    </CippFormCondition>
-    <CippFormCondition
-      field="BatchDeleteMode"
-      compareType="is"
-      compareValue="1"
-      formControl={formHook}
-    >
-      <CippFormComponent
-        type="number"
-        name="MajorVersionLimit"
-        label="Maximum Major Versions to Keep"
-        formControl={formHook}
-        validators={{ required: 'Please enter the version limit' }}
-      />
-      <CippFormComponent
-        type="number"
-        name="MajorWithMinorVersionsLimit"
-        label="Major Versions That Keep Their Minor Versions"
-        formControl={formHook}
-        validators={{ required: 'Please enter the major-with-minor version limit' }}
-      />
-    </CippFormCondition>
-  </>
-)
-
-VersionCleanupFields.propTypes = {
-  formHook: PropTypes.object.isRequired,
-}
-
 /**
- * Site-scoped Storage sheet for cleanup.
- * Overview (cheap live): used/quota, version policy, top libraries.
- * Recycle / Versions tabs: cleanup actions — no file-level scans.
+ * Site capacity triage sheet (not the tenant Storage Report).
+ * Overview: used/quota, unexplained gap vs libraries, top libraries.
+ * Versions: cleanup job. Recycle lives in the site explorer; tenant analytics on Storage Report.
  */
 export const CippSharePointBrowserStorage = ({
   open = false,
   onClose,
   item,
   tenantFilter,
+  focusLibraryId = null,
 }) => {
   const [tab, setTab] = useState(0)
   const { checkPermissions } = usePermissions()
   const canWriteSite = checkPermissions(['Sharepoint.Site.ReadWrite'])
-  const canReadRecycleBin = checkPermissions([
-    'Sharepoint.SiteRecycleBin.Read',
-    'Sharepoint.SiteRecycleBin.ReadWrite',
-  ])
-  const canRestore = checkPermissions(['Sharepoint.SiteRecycleBin.ReadWrite'])
   const startCleanupDialog = useDialog()
 
   const siteUrl = item?.webUrl
@@ -274,7 +167,7 @@ export const CippSharePointBrowserStorage = ({
   const refreshAll = () => {
     fetchSiteProps()
     librariesApi.refetch?.()
-    if (tab === 2) fetchJobStatus()
+    if (tab === 1) fetchJobStatus()
   }
 
   useEffect(() => {
@@ -285,7 +178,7 @@ export const CippSharePointBrowserStorage = ({
   }, [open, siteUrl, siteId, tenant])
 
   useEffect(() => {
-    if (!open || tab !== 2) return
+    if (!open || tab !== 1) return
     fetchJobStatus()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, tab, siteUrl, siteId, tenant])
@@ -345,6 +238,14 @@ export const CippSharePointBrowserStorage = ({
   )
   const librariesMeasuredLabel = formatBytes(librariesMeasuredBytes)
   const maxLibBytes = topLibraries[0]?._bytes > 0 ? topLibraries[0]._bytes : 0
+  const gapBytes =
+    usedBytes != null && librariesMeasuredBytes >= 0
+      ? Math.max(0, usedBytes - librariesMeasuredBytes)
+      : null
+  const gapLabel = formatBytes(gapBytes)
+  const stormanHref = siteUrl
+    ? `${String(siteUrl).replace(/\/+$/, '')}/_layouts/15/storman.aspx`
+    : null
 
   const glanceLoading = sitePropsApi.isPending && !siteProps
   const libsLoading = librariesApi.isFetching && !libraryRows.length
@@ -354,32 +255,12 @@ export const CippSharePointBrowserStorage = ({
     onClose?.()
   }
 
-  const recycleBinQueryKey = `SiteBrowserRecycleBin-${siteUrl}`
-
-  const recycleActions = [
-    {
-      label: 'Restore Item',
-      type: 'POST',
-      icon: <RestoreFromTrash />,
-      url: '/api/ExecRestoreRecycleBinItems',
-      data: {
-        Ids: 'Id',
-        ItemNames: 'LeafName',
-        SiteUrl: siteUrl,
-        tenantFilter: tenant,
-      },
-      confirmText: 'Restore [LeafName] from the recycle bin?',
-      condition: () => canRestore,
-      multiPost: false,
-    },
-  ]
-
   return (
     <>
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="lg">
         <DialogTitle sx={{ pr: 12 }}>
           <Typography variant="h6" component="span">
-            Storage — {siteName}
+            Site capacity — {siteName}
           </Typography>
           <Stack direction="row" spacing={0.5} sx={{ position: 'absolute', right: 8, top: 8 }}>
             <Tooltip title="Refresh">
@@ -389,16 +270,16 @@ export const CippSharePointBrowserStorage = ({
                   onClick={refreshAll}
                   disabled={!siteUrl || glanceLoading}
                 >
-                  <Refresh />
+                  <CippIcons.Refresh />
                 </IconButton>
               </span>
             </Tooltip>
             <IconButton aria-label="Close" onClick={handleClose}>
-              <Close />
+              <CippIcons.Close />
             </IconButton>
           </Stack>
         </DialogTitle>
-        <DialogContent dividers sx={{ minHeight: 520 }}>
+        <DialogContent dividers sx={{ minHeight: { xs: 360, md: 520 } }}>
           {!siteUrl ? (
             <Alert severity="warning">No site URL available for this selection.</Alert>
           ) : (
@@ -410,7 +291,6 @@ export const CippSharePointBrowserStorage = ({
                 allowScrollButtonsMobile
               >
                 <Tab label="Overview" />
-                <Tab label="Recycle bin" />
                 <Tab label="Versions" />
               </Tabs>
               <Divider />
@@ -427,12 +307,13 @@ export const CippSharePointBrowserStorage = ({
                         direction="row"
                         spacing={0.75}
                         useFlexGap
-                        flexWrap="wrap"
-                        alignItems="center"
-                      >
+                        sx={{
+                          flexWrap: "wrap",
+                          alignItems: "center"
+                        }}>
                         <Chip
                           size="small"
-                          icon={<StorageIcon />}
+                          icon={<CippIcons.Storage />}
                           color={nearWarning ? 'warning' : 'default'}
                           label={
                             quotaLabel
@@ -454,6 +335,14 @@ export const CippSharePointBrowserStorage = ({
                             label={`Libraries ${librariesMeasuredLabel}`}
                           />
                         ) : null}
+                        {gapLabel && gapBytes > 0 ? (
+                          <Chip
+                            size="small"
+                            color="warning"
+                            variant="outlined"
+                            label={`Unexplained ~${gapLabel}`}
+                          />
+                        ) : null}
                       </Stack>
 
                       {quotaBytes ? (
@@ -464,19 +353,44 @@ export const CippSharePointBrowserStorage = ({
                             color={quotaBarColor}
                             sx={{ height: 8, borderRadius: 1 }}
                           />
-                          <Typography variant="caption" color="text.secondary">
+                          <Typography variant="caption" sx={{
+                            color: "text.secondary"
+                          }}>
                             {nearWarning
-                              ? 'Near quota warning — reclaim recycle or trim versions before the site locks writes.'
+                              ? 'Near quota warning — reclaim recycle (explorer Recycle mode) or trim versions before the site locks writes.'
                               : 'Quota usage from site properties (live).'}
                           </Typography>
                         </Box>
                       ) : null}
 
-                      <Alert severity="info">
-                        <strong>Cleanup path:</strong> check largest libraries → Recycle bin
-                        (1st/2nd stage) → Versions if history looks like the gap. Version bytes are
-                        not measured live (that would scan files).
-                      </Alert>
+                      {gapBytes != null && gapBytes > 0 ? (
+                        <Alert severity="warning">
+                          Site used is about {gapLabel} higher than measured root libraries — often
+                          recycle bin, file versions, or other lists. Use Recycle in the explorer or
+                          Versions below; open classic Storage Metrics for folder-level truth.
+                        </Alert>
+                      ) : (
+                        <Alert severity="info">
+                          Site capacity triage for this site. Recycle is in the explorer Recycle mode.
+                        </Alert>
+                      )}
+
+                      <Stack direction="row" spacing={1} useFlexGap sx={{
+                        flexWrap: "wrap"
+                      }}>
+                        {stormanHref ? (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            href={stormanHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            startIcon={<CippIcons.Assessment />}
+                          >
+                            Storage Metrics
+                          </Button>
+                        ) : null}
+                      </Stack>
                     </Stack>
                   )}
 
@@ -484,19 +398,22 @@ export const CippSharePointBrowserStorage = ({
                     <Stack
                       direction="row"
                       spacing={1}
-                      alignItems="center"
-                      justifyContent="space-between"
-                      sx={{ mb: 1 }}
-                    >
+                      sx={{
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        mb: 1
+                      }}>
                       <Typography variant="subtitle2">Largest libraries</Typography>
                       {libsLoading ? <CircularProgress size={18} /> : null}
                     </Stack>
                     {librariesApi.isError ? (
                       <Alert severity="warning">
-                        Could not load library sizes. You can still use Recycle and Versions.
+                        Could not load library sizes. You can still use Versions cleanup.
                       </Alert>
                     ) : !libsLoading && !topLibraries.length ? (
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2" sx={{
+                        color: "text.secondary"
+                      }}>
                         No document libraries returned for this site.
                       </Typography>
                     ) : (
@@ -520,27 +437,48 @@ export const CippSharePointBrowserStorage = ({
                                 maxLibBytes > 0 && !Number.isNaN(lib._bytes) && lib._bytes > 0
                                   ? Math.min(100, (lib._bytes / maxLibBytes) * 100)
                                   : 0
+                              const focused = focusLibraryId && lib.id === focusLibraryId
                               return (
-                                <TableRow key={lib.id}>
+                                <TableRow
+                                  key={lib.id}
+                                  selected={focused}
+                                  sx={
+                                    focused
+                                      ? {
+                                          bgcolor: (theme) =>
+                                            theme.palette.mode === 'dark'
+                                              ? 'action.selected'
+                                              : 'warning.light',
+                                        }
+                                      : undefined
+                                  }
+                                >
                                   <TableCell>
                                     <Typography variant="body2" noWrap title={lib.displayName}>
                                       {lib.displayName || lib.name || '—'}
+                                      {focused ? ' (selected)' : ''}
                                     </Typography>
                                   </TableCell>
                                   <TableCell>
-                                    <Typography variant="body2" color="text.secondary" noWrap>
+                                    <Typography variant="body2" noWrap sx={{
+                                      color: "text.secondary"
+                                    }}>
                                       {lib.siteType || '—'}
                                     </Typography>
                                   </TableCell>
                                   <TableCell align="right">
-                                    <Typography variant="body2" color="text.secondary">
+                                    <Typography variant="body2" sx={{
+                                      color: "text.secondary"
+                                    }}>
                                       {lib.fileCount != null
                                         ? Number(lib.fileCount).toLocaleString()
                                         : '—'}
                                     </Typography>
                                   </TableCell>
                                   <TableCell align="right">
-                                    <Stack spacing={0.5} alignItems="flex-end">
+                                    <Stack spacing={0.5} sx={{
+                                      alignItems: "flex-end"
+                                    }}>
                                       <Typography variant="body2">
                                         {formatBytes(lib.storageUsedInBytes) || '—'}
                                       </Typography>
@@ -554,7 +492,7 @@ export const CippSharePointBrowserStorage = ({
                                     </Stack>
                                   </TableCell>
                                 </TableRow>
-                              )
+                              );
                             })}
                           </TableBody>
                         </Table>
@@ -562,9 +500,11 @@ export const CippSharePointBrowserStorage = ({
                     )}
                     <Typography
                       variant="caption"
-                      color="text.secondary"
-                      sx={{ display: 'block', mt: 0.75 }}
-                    >
+                      sx={{
+                        color: "text.secondary",
+                        display: 'block',
+                        mt: 0.75
+                      }}>
                       Library size = root folder StorageMetrics (live). Site used may be higher —
                       recycle, versions, and other lists are not in this table.
                       {libraryRows.length > TOP_LIBRARIES
@@ -576,52 +516,17 @@ export const CippSharePointBrowserStorage = ({
               </TabPanel>
 
               <TabPanel value={tab} index={1}>
-                {!canReadRecycleBin ? (
-                  <Alert severity="info">
-                    Recycle bin requires SharePoint recycle bin read permission.
-                  </Alert>
-                ) : (
-                  <>
-                    <Alert severity="info" sx={{ mb: 1.5 }}>
-                      First and second stage together (newest first, capped by the API). Filter on
-                      Item State. Sizes are per item — totals are not fully summed live.
-                    </Alert>
-                    <CippDataTable
-                      noCard={true}
-                      title="Deleted items"
-                      queryKey={recycleBinQueryKey}
-                      api={{
-                        url: '/api/ListSiteRecycleBin',
-                        data: {
-                          SiteUrl: siteUrl,
-                          tenantFilter: tenant,
-                        },
-                        dataKey: 'Results',
-                      }}
-                      actions={recycleActions}
-                      simpleColumns={[
-                        'LeafName',
-                        'DirName',
-                        'ItemType',
-                        'ItemState',
-                        'Size',
-                        'DeletedByName',
-                        'DeletedDate',
-                      ]}
-                    />
-                  </>
-                )}
-              </TabPanel>
-
-              <TabPanel value={tab} index={2}>
                 <Stack
                   direction="row"
                   spacing={1}
-                  alignItems="center"
-                  justifyContent="space-between"
-                  sx={{ mb: 1.5 }}
-                >
-                  <Stack direction="row" spacing={1} alignItems="center">
+                  sx={{
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    mb: 1.5
+                  }}>
+                  <Stack direction="row" spacing={1} sx={{
+                    alignItems: "center"
+                  }}>
                     <Typography variant="subtitle2">Version history trim</Typography>
                     <Chip size="small" color={chip.color} label={chip.label} />
                   </Stack>
@@ -629,7 +534,7 @@ export const CippSharePointBrowserStorage = ({
                     <Button
                       size="small"
                       variant="outlined"
-                      startIcon={<Refresh />}
+                      startIcon={<CippIcons.Refresh />}
                       onClick={fetchJobStatus}
                       disabled={jobStatusApi.isPending}
                     >
@@ -638,7 +543,7 @@ export const CippSharePointBrowserStorage = ({
                     <Tooltip
                       title={
                         canWriteSite
-                          ? 'Start version cleanup'
+                          ? 'Open version cleanup options'
                           : 'Requires SharePoint write permission'
                       }
                     >
@@ -646,11 +551,11 @@ export const CippSharePointBrowserStorage = ({
                         <Button
                           size="small"
                           variant="contained"
-                          startIcon={<CleaningServices />}
+                          startIcon={<CippIcons.CleaningServices />}
                           disabled={!canWriteSite}
                           onClick={() => startCleanupDialog.handleOpen()}
                         >
-                          Start cleanup
+                          Configure version cleanup…
                         </Button>
                       </span>
                     </Tooltip>
@@ -704,10 +609,15 @@ export const CippSharePointBrowserStorage = ({
 
       <CippApiDialog
         createDialog={startCleanupDialog}
-        title="Start Version Cleanup"
+        title="Configure Version Cleanup"
         relatedQueryKeys={[]}
         allowResubmit
-        defaultvalues={{ BatchDeleteMode: '2' }}
+        defaultvalues={{
+          BatchDeleteMode: '2',
+          DeleteOlderThanDays: 90,
+          MajorVersionLimit: 50,
+          MajorWithMinorVersionsLimit: 0,
+        }}
         api={{
           type: 'POST',
           url: '/api/ExecSiteBrowserActions',
@@ -733,10 +643,16 @@ export const CippSharePointBrowserStorage = ({
         }}
         row={item ?? {}}
       >
-        {({ formHook }) => <VersionCleanupFields formHook={formHook} />}
+        {({ formHook }) => (
+          <CippSharePointVersionCleanupFields
+            formHook={formHook}
+            tenantFilter={tenant}
+            siteUrl={siteUrl}
+          />
+        )}
       </CippApiDialog>
     </>
-  )
+  );
 }
 
 CippSharePointBrowserStorage.propTypes = {
@@ -744,4 +660,5 @@ CippSharePointBrowserStorage.propTypes = {
   onClose: PropTypes.func,
   item: PropTypes.object,
   tenantFilter: PropTypes.string,
+  focusLibraryId: PropTypes.string,
 }

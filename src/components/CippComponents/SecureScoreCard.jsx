@@ -1,5 +1,6 @@
 import { Box, Card, CardHeader, CardContent, Typography, Divider, Skeleton } from '@mui/material'
-import { Security as SecurityIcon } from '@mui/icons-material'
+import { CippIcons } from '../../utils/icon-registry'
+import { useTheme } from '@mui/material/styles'
 import { useRouter } from 'next/router'
 import {
   LineChart,
@@ -20,17 +21,18 @@ import { useIsMobileLayout } from '../../hooks/use-breakpoint'
  * assert against: recharts reads its axis children's props directly rather than mounting them,
  * so an XAxis cannot be captured by wrapping it.
  *
- * `interval: 0` draws a label for every point. Thirteen dates fit across a desktop card and
- * overlap into one smear at 390px — "Jul 27Jul 28Jul 29". A narrow chart hands spacing back to
- * recharts and lets it drop whatever will not fit.
+ * A fixed `interval: 0` drew a label for every point regardless of card width, which overlapped
+ * into an unreadable run whenever the card was narrower than a full desktop column (e.g. the
+ * dashboard's third-width layout). `interval="preserveStartEnd"` with a minimum pixel gap lets
+ * recharts drop whatever labels do not fit, at any width, while a short tickFormatter keeps more
+ * of them legible before that thinning kicks in.
  */
-export const secureScoreAxisProps = ({ isMobile, ticks }) => ({
+export const secureScoreAxisProps = ({ isMobile }) => ({
   x: {
     tick: { fontSize: isMobile ? 10 : 12 },
     tickMargin: 8,
-    ticks: isMobile ? undefined : ticks,
-    interval: isMobile ? 'preserveStartEnd' : 0,
-    minTickGap: isMobile ? 28 : 5,
+    interval: 'preserveStartEnd',
+    minTickGap: isMobile ? 28 : 32,
   },
   y: {
     tick: { fontSize: isMobile ? 10 : 12 },
@@ -42,6 +44,9 @@ export const secureScoreAxisProps = ({ isMobile, ticks }) => ({
 export const SecureScoreCard = ({ data, isLoading }) => {
   const router = useRouter()
   const isMobile = useIsMobileLayout()
+  // recharts has no theme; hard-coded light greys drew a near-white grid and a white tooltip
+  // over the dark card, so grid, reference line and tooltip come off the palette.
+  const theme = useTheme()
   return (
     <Card sx={{ flex: 1, height: '100%' }}>
       <CardHeader
@@ -57,7 +62,7 @@ export const SecureScoreCard = ({ data, isLoading }) => {
               '&:hover': { textDecoration: 'underline' },
             }}
           >
-            <SecurityIcon sx={{ fontSize: 24 }} />
+            <CippIcons.Security sx={{ fontSize: 24 }} />
             <Typography variant="h6">Secure Score</Typography>
           </Box>
         }
@@ -71,7 +76,12 @@ export const SecureScoreCard = ({ data, isLoading }) => {
                 <Skeleton variant="rectangular" width="100%" height={200} />
               </Box>
             </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: "text.secondary",
+                mt: 2
+              }}>
               The Secure Score measures your security posture across your tenant.
             </Typography>
           </>
@@ -86,12 +96,19 @@ export const SecureScoreCard = ({ data, isLoading }) => {
                   height: '100%',
                 }}
               >
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" sx={{
+                  color: "text.secondary"
+                }}>
                   No secure score data available
                 </Typography>
               </Box>
             </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: "text.secondary",
+                mt: 2
+              }}>
               The Secure Score measures your security posture across your tenant.
             </Typography>
           </>
@@ -113,14 +130,13 @@ export const SecureScoreCard = ({ data, isLoading }) => {
                     score: score.currentScore,
                     percentage: Math.round((score.currentScore / score.maxScore) * 100),
                   }))
-                  const ticks = chartData.map((d) => d.date)
-                  const axis = secureScoreAxisProps({ isMobile, ticks })
+                  const axis = secureScoreAxisProps({ isMobile })
                   return (
                     <LineChart
                       data={chartData}
                       margin={{ left: 12, right: 12, top: 10, bottom: 10 }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                      <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
                       <XAxis dataKey="date" {...axis.x} />
                       <YAxis
                         {...axis.y}
@@ -129,26 +145,25 @@ export const SecureScoreCard = ({ data, isLoading }) => {
                       />
                       <ReferenceLine
                         y={maxScore}
-                        stroke="#94a3b8"
+                        stroke={theme.palette.text.secondary}
                         strokeDasharray="0"
                         label={{
                           value: `Max: ${Math.round(maxScore)}`,
                           position: 'insideTopRight',
                           fontSize: 11,
-                          fill: '#64748b',
+                          fill: theme.palette.text.secondary,
                         }}
                       />
                       <RechartsTooltip
                         contentStyle={{
-                          backgroundColor: 'rgba(255,255,255,0.85)',
-                          color: 'inherit',
-                          border: '1px solid #bbb',
+                          backgroundColor: theme.palette.background.paper,
+                          color: theme.palette.text.primary,
+                          border: `1px solid ${theme.palette.divider}`,
                           borderRadius: '4px',
                           boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                          backdropFilter: 'blur(2px)',
                         }}
                         labelStyle={{
-                          color: '#000000',
+                          color: theme.palette.text.primary,
                         }}
                         formatter={(value, name) => {
                           if (name === 'score') return [value.toFixed(2), 'Score']
@@ -169,7 +184,12 @@ export const SecureScoreCard = ({ data, isLoading }) => {
                 })()}
               </ResponsiveContainer>
             </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: "text.secondary",
+                mt: 2
+              }}>
               The Secure Score measures your security posture across your tenant.
             </Typography>
           </>
@@ -192,16 +212,22 @@ export const SecureScoreCard = ({ data, isLoading }) => {
             </Box>
           </Box>
         ) : !data || !Array.isArray(data) || data.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{
+            color: "text.secondary"
+          }}>
             Enable secure score monitoring in your tenant
           </Typography>
         ) : (
           <Box sx={{ display: 'flex', gap: 2 }}>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="caption" sx={{
+                color: "text.secondary"
+              }}>
                 Latest %
               </Typography>
-              <Typography variant="h6" fontWeight="bold">
+              <Typography variant="h6" sx={{
+                fontWeight: "bold"
+              }}>
                 {Math.round(
                   (data[data.length - 1].currentScore / data[data.length - 1].maxScore) * 100
                 )}
@@ -210,19 +236,27 @@ export const SecureScoreCard = ({ data, isLoading }) => {
             </Box>
             <Divider orientation="vertical" flexItem />
             <Box sx={{ flex: 1 }}>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="caption" sx={{
+                color: "text.secondary"
+              }}>
                 Current Score
               </Typography>
-              <Typography variant="h6" fontWeight="bold">
+              <Typography variant="h6" sx={{
+                fontWeight: "bold"
+              }}>
                 {data[data.length - 1].currentScore.toFixed(2)}
               </Typography>
             </Box>
             <Divider orientation="vertical" flexItem />
             <Box sx={{ flex: 1 }}>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="caption" sx={{
+                color: "text.secondary"
+              }}>
                 Max Score
               </Typography>
-              <Typography variant="h6" fontWeight="bold">
+              <Typography variant="h6" sx={{
+                fontWeight: "bold"
+              }}>
                 {data[data.length - 1].maxScore.toFixed(2)}
               </Typography>
             </Box>
@@ -230,5 +264,5 @@ export const SecureScoreCard = ({ data, isLoading }) => {
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

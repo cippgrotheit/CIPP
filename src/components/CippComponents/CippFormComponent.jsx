@@ -14,6 +14,8 @@ import {
   Tooltip,
   Alert,
 } from "@mui/material";
+import { CippIcons } from "../../utils/icon-registry";
+import { useTheme } from "@mui/material/styles";
 import { CippAutoComplete } from "./CippAutocomplete";
 import { CippTextFieldWithVariables } from "./CippTextFieldWithVariables";
 import { Controller, useFormState } from "react-hook-form";
@@ -23,7 +25,6 @@ import get from "lodash/get";
 import dynamic from "next/dynamic";
 import { CippDataTable } from "../CippTable/CippDataTable";
 import React from "react";
-import { CloudUpload } from "@mui/icons-material";
 import { Stack } from "@mui/system";
 import countryList from "../../data/countryList";
 import languageList from "../../data/languageList";
@@ -53,6 +54,22 @@ const CippRichTextField = dynamic(() => import("./CippRichTextField"), {
   loading: () => null,
 });
 
+// Merges caller-supplied slotProps (arriving via {...other}) with the wrapper's
+// shrink-label default, so a caller's slotProps.input/htmlInput survive and the
+// shrink default stays overridable per call site.
+const withShrinkLabel = (slotProps) => ({
+  ...slotProps,
+  inputLabel: { shrink: true, ...slotProps?.inputLabel },
+});
+
+// Switch, Checkbox and RadioGroup have no fullWidth prop; MUI would hand it to the DOM as an
+// unknown attribute, so drop it before spreading a field's remaining props onto them.
+const omitFullWidth = (fieldProps) => {
+  const rest = { ...fieldProps };
+  delete rest.fullWidth;
+  return rest;
+};
+
 // Helper function to convert bracket notation to dot notation
 // Improved to correctly handle nested bracket notations
 const convertBracketsToDots = (name) => {
@@ -66,7 +83,7 @@ const MemoizedCippAutoComplete = React.memo((props) => {
 
 export const CippFormComponent = (props) => {
   const {
-    validators,
+    validators: validatorsProp,
     formControl,
     type = "textField",
     name, // The name that may have bracket notation
@@ -77,9 +94,20 @@ export const CippFormComponent = (props) => {
     disableVariables = false,
     includeSystemVariables = false,
     row,
+    // Consumed by the autoComplete-backed and table types below; every other type renders a
+    // MUI input that would forward it to the DOM.
+    isFetching,
+    // A bare react-hook-form rule some callers pass alongside `validators` instead of nesting
+    // it under `validators.validate`; strip it here and fold it in, or it falls into `...other`
+    // and reaches the DOM as an unknown attribute.
+    validate,
     ...other
   } = props;
+  const validators = validate
+    ? { ...validatorsProp, validate: validatorsProp?.validate ?? validate }
+    : validatorsProp;
   const { errors } = useFormState({ control: formControl.control });
+  const theme = useTheme();
   // Convert the name from bracket notation to dot notation
   const convertedName = convertBracketsToDots(name);
 
@@ -135,7 +163,7 @@ export const CippFormComponent = (props) => {
             <MemoizedCippAutoComplete
               {...autoCompleteProps}
               options={resolvedOptions}
-              isFetching={autoCompleteProps.isFetching}
+              isFetching={isFetching}
               variant="filled"
               defaultValue={field.value}
               label={label}
@@ -151,7 +179,9 @@ export const CippFormComponent = (props) => {
           </Typography>
         )}
         {helperText && (
-          <Typography variant="subtitle3" color="text.secondary">
+          <Typography variant="subtitle3" sx={{
+            color: "text.secondary"
+          }}>
             {helperText}
           </Typography>
         )}
@@ -196,6 +226,7 @@ export const CippFormComponent = (props) => {
                   <CippDataTable
                     noCard={true}
                     {...other}
+                    isFetching={isFetching}
                     onChange={(value) => field.onChange(value)}
                     simple={false}
                   />
@@ -211,7 +242,23 @@ export const CippFormComponent = (props) => {
         </>
       );
 
-    case "textField":
+    case "textField": {
+      const {
+        inputProps: legacyInputProps,
+        InputProps: legacyInputPropsCapital,
+        slotProps: textFieldSlotProps,
+        ...textFieldRest
+      } = other;
+      const mergedTextFieldSlotProps = withShrinkLabel({
+        ...textFieldSlotProps,
+        ...(legacyInputProps
+          ? { htmlInput: { ...textFieldSlotProps?.htmlInput, ...legacyInputProps } }
+          : {}),
+        ...(legacyInputPropsCapital
+          ? { input: { ...textFieldSlotProps?.input, ...legacyInputPropsCapital } }
+          : {}),
+      });
+
       return (
         <>
           <Tooltip title={label || ""} placement="top" arrow>
@@ -224,12 +271,10 @@ export const CippFormComponent = (props) => {
                 render={({ field }) =>
                   !disableVariables ? (
                     <CippTextFieldWithVariables
-                      {...other}
+                      {...textFieldRest}
                       variant="filled"
                       fullWidth
-                      InputLabelProps={{
-                        shrink: true,
-                      }}
+                      slotProps={mergedTextFieldSlotProps}
                       label={label}
                       value={field.value || ""}
                       onChange={field.onChange}
@@ -240,14 +285,12 @@ export const CippFormComponent = (props) => {
                     <TextField
                       variant="filled"
                       fullWidth
-                      InputLabelProps={{
-                        shrink: true,
-                      }}
-                      {...other}
+                      {...textFieldRest}
                       label={label}
                       value={field.value || ""}
                       onChange={field.onChange}
                       onBlur={field.onBlur}
+                      slotProps={mergedTextFieldSlotProps}
                     />
                   )
                 }
@@ -260,12 +303,15 @@ export const CippFormComponent = (props) => {
             </Typography>
           )}
           {helperText && (
-            <Typography variant="subtitle3" color="text.secondary">
+            <Typography variant="subtitle3" sx={{
+              color: "text.secondary"
+            }}>
               {helperText}
             </Typography>
           )}
         </>
       );
+    }
     case "colorPicker":
       return (
         <>
@@ -283,14 +329,24 @@ export const CippFormComponent = (props) => {
               }}
               render={({ field }) => (
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  {/* An unset colour has to render as some swatch; #000000 is a hole on a
+                      dark card, so dark mode falls back to the card colour instead. */}
                   <input
                     type="color"
-                    value={/^#[0-9A-F]{6}$/i.test(field.value || "") ? field.value : "#000000"}
+                    value={
+                      /^#[0-9A-F]{6}$/i.test(field.value || "")
+                        ? field.value
+                        : theme.palette.mode === "dark"
+                          ? theme.palette.background.paper
+                          : "#000000"
+                    }
                     onChange={(e) => field.onChange(e.target.value)}
                     style={{
                       width: "50px",
                       height: "40px",
-                      border: "1px solid #ddd",
+                      border: `1px solid ${
+                        theme.palette.mode === "dark" ? theme.palette.neutral[600] : "#ddd"
+                      }`,
                       borderRadius: "4px",
                       cursor: "pointer",
                       padding: 0,
@@ -298,16 +354,13 @@ export const CippFormComponent = (props) => {
                   />
                   <TextField
                     variant="filled"
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
                     sx={{ width: "150px" }}
                     {...other}
                     label={label}
                     value={field.value || ""}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
-                  />
+                    slotProps={withShrinkLabel(other.slotProps)} />
                 </Box>
               )}
             />
@@ -318,7 +371,9 @@ export const CippFormComponent = (props) => {
             </Typography>
           )}
           {helperText && (
-            <Typography variant="subtitle3" color="text.secondary">
+            <Typography variant="subtitle3" sx={{
+              color: "text.secondary"
+            }}>
               {helperText}
             </Typography>
           )}
@@ -343,9 +398,7 @@ export const CippFormComponent = (props) => {
                     {...other}
                     variant="filled"
                     fullWidth
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
+                    slotProps={withShrinkLabel(other.slotProps)}
                     label={label}
                     value={field.value || ""}
                     onChange={field.onChange}
@@ -362,7 +415,9 @@ export const CippFormComponent = (props) => {
             </Typography>
           )}
           {helperText && (
-            <Typography variant="subtitle3" color="text.secondary">
+            <Typography variant="subtitle3" sx={{
+              color: "text.secondary"
+            }}>
               {helperText}
             </Typography>
           )}
@@ -383,9 +438,6 @@ export const CippFormComponent = (props) => {
                     type="password"
                     variant="filled"
                     fullWidth
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
                     {...other}
                     label={label}
                     value={field.value ?? ""}
@@ -393,7 +445,7 @@ export const CippFormComponent = (props) => {
                     onBlur={field.onBlur}
                     name={field.name}
                     inputRef={field.ref}
-                  />
+                    slotProps={withShrinkLabel(other.slotProps)} />
                 </Tooltip>
               )}
             />
@@ -404,7 +456,9 @@ export const CippFormComponent = (props) => {
             </Typography>
           )}
           {helperText && (
-            <Typography variant="subtitle3" color="text.secondary">
+            <Typography variant="subtitle3" sx={{
+              color: "text.secondary"
+            }}>
               {helperText}
             </Typography>
           )}
@@ -418,14 +472,15 @@ export const CippFormComponent = (props) => {
               <TextField
                 type="number"
                 variant="filled"
-                InputLabelProps={{
-                  shrink: true,
-                }}
                 {...other}
-                {...formControl.register(convertedName, { ...validators })}
+                {...formControl.register(convertedName, {
+                  setValueAs: (v) =>
+                    v === "" || v === null || v === undefined ? null : Number(v),
+                  ...validators,
+                })}
                 label={label}
                 defaultValue={defaultValue}
-              />
+                slotProps={withShrinkLabel(other.slotProps)} />
             </Tooltip>
           </div>
           {get(errors, convertedName, {})?.message && (
@@ -434,7 +489,9 @@ export const CippFormComponent = (props) => {
             </Typography>
           )}
           {helperText && (
-            <Typography variant="subtitle3" color="text.secondary">
+            <Typography variant="subtitle3" sx={{
+              color: "text.secondary"
+            }}>
               {helperText}
             </Typography>
           )}
@@ -453,7 +510,7 @@ export const CippFormComponent = (props) => {
                 renderSwitchWithLabel(
                   <Switch
                     checked={Boolean(field.value)}
-                    {...other}
+                    {...omitFullWidth(other)}
                     {...formControl.register(convertedName, { ...validators })}
                   />,
                 )
@@ -466,7 +523,9 @@ export const CippFormComponent = (props) => {
             </Typography>
           )}
           {helperText && (
-            <Typography variant="subtitle3" color="text.secondary">
+            <Typography variant="subtitle3" sx={{
+              color: "text.secondary"
+            }}>
               {helperText}
             </Typography>
           )}
@@ -477,7 +536,10 @@ export const CippFormComponent = (props) => {
       return (
         <>
           <div>
-            <Checkbox {...other} {...formControl.register(convertedName, { ...validators })} />
+            <Checkbox
+              {...omitFullWidth(other)}
+              {...formControl.register(convertedName, { ...validators })}
+            />
             <label>{label}</label>
           </div>
           {get(errors, convertedName, {})?.message && (
@@ -496,7 +558,9 @@ export const CippFormComponent = (props) => {
               <Stack>
                 {label}
                 {helperText && (
-                  <Typography variant="subtitle3" color="text.secondary">
+                  <Typography variant="subtitle3" sx={{
+                    color: "text.secondary"
+                  }}>
                     {helperText}
                   </Typography>
                 )}
@@ -522,7 +586,7 @@ export const CippFormComponent = (props) => {
                     value={field.value || ""}
                     onChange={(e) => field.onChange(e.target.value)}
                     onBlur={field.onBlur}
-                    {...other}
+                    {...omitFullWidth(other)}
                   >
                     {props.options.map((option, idx) => (
                       <FormControlLabel
@@ -556,7 +620,7 @@ export const CippFormComponent = (props) => {
               render={({ field }) => (
                 <MemoizedCippAutoComplete
                   {...other}
-                  isFetching={other.isFetching}
+                  isFetching={isFetching}
                   variant="filled"
                   defaultValue={field.value}
                   label={label}
@@ -661,7 +725,18 @@ export const CippFormComponent = (props) => {
         </>
       );
 
-    case "datePicker":
+    case "datePicker": {
+      const {
+        inputProps: _legacyInputProps,
+        InputProps: _legacyInputPropsCapital,
+        renderInput: _renderInput,
+        inputFormat: _inputFormat,
+        dateTimeType,
+        slotProps: datePickerSlotProps,
+        ...datePickerRest
+      } = other;
+      const fieldError = get(errors, convertedName, {})?.message;
+
       return (
         <>
           <div>
@@ -673,7 +748,6 @@ export const CippFormComponent = (props) => {
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <Box sx={{ flexGrow: 1 }}>
                     <DateTimePicker
-                      slotProps={{ textField: { fullWidth: true } }}
                       sx={{
                         "& .MuiPickersSectionList-root": {
                           paddingTop: "10px",
@@ -681,10 +755,11 @@ export const CippFormComponent = (props) => {
                         },
                       }}
                       views={
-                        other.dateTimeType === "date"
+                        dateTimeType === "date"
                           ? ["year", "month", "day"]
                           : ["year", "month", "day", "hours", "minutes"]
                       }
+                      format="yyyy/MM/dd HH:mm" // Display format
                       label={label}
                       value={field.value ? new Date(field.value * 1000) : null} // Convert Unix timestamp to Date object
                       onChange={(date) => {
@@ -698,24 +773,27 @@ export const CippFormComponent = (props) => {
                       onClose={field.onBlur}
                       ampm={false}
                       minutesStep={15}
-                      inputFormat="yyyy/MM/dd HH:mm" // Display format
-                      renderInput={(inputProps) => (
-                        <TextField
-                          {...inputProps}
-                          {...other}
-                          fullWidth
-                          error={!!errors[convertedName]}
-                          helperText={get(errors, convertedName, {})?.message}
-                          variant="filled"
-                        />
-                      )}
-                      {...other}
+                      {...datePickerRest}
+                      // renderInput/inputFormat were removed from x-date-pickers; the text field
+                      // is now configured through slotProps.textField instead. The shrink label
+                      // is a sub-slot of that TextField, so it nests under textField.slotProps.
+                      slotProps={{
+                        ...datePickerSlotProps,
+                        textField: {
+                          fullWidth: true,
+                          variant: "filled",
+                          error: !!fieldError,
+                          helperText: fieldError,
+                          ...datePickerSlotProps?.textField,
+                          slotProps: withShrinkLabel(datePickerSlotProps?.textField?.slotProps),
+                        },
+                      }}
                     />
                   </Box>
                   <Button
                     variant="outlined"
                     size="small"
-                    disabled={other?.disabled}
+                    disabled={datePickerRest?.disabled}
                     onClick={() => {
                       const now = new Date();
                       // Always round down to the previous 15-minute mark, unless exactly on a 15-min mark
@@ -742,15 +820,18 @@ export const CippFormComponent = (props) => {
             />
           </div>
           {helperText && (
-            <Typography variant="subtitle3" color="text.secondary">
+            <Typography variant="subtitle3" sx={{
+              color: "text.secondary"
+            }}>
               {helperText}
             </Typography>
           )}
           <Typography variant="subtitle3" color="error">
-            {get(errors, convertedName, {})?.message}
+            {fieldError}
           </Typography>
         </>
       );
+    }
 
     case "file":
       return (
@@ -779,12 +860,16 @@ export const CippFormComponent = (props) => {
                     }}
                     onClick={() => document.getElementById(`file-input-${convertedName}`).click()}
                   >
-                    <CloudUpload sx={{ fontSize: 40, color: "grey.500", mb: 1 }} />
-                    <Typography variant="body2" color="text.secondary">
+                    <CippIcons.CloudUpload sx={{ fontSize: 40, color: "grey.500", mb: 1 }} />
+                    <Typography variant="body2" sx={{
+                      color: "text.secondary"
+                    }}>
                       {field.value ? field.value.name : "Click to upload file or drag and drop"}
                     </Typography>
                     {field.value && (
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography variant="caption" sx={{
+                        color: "text.secondary"
+                      }}>
                         Size: {(field.value.size / 1024).toFixed(2)} KB
                       </Typography>
                     )}
@@ -793,7 +878,7 @@ export const CippFormComponent = (props) => {
                     id={`file-input-${convertedName}`}
                     type="file"
                     sx={{ display: "none" }}
-                    inputProps={{ ...other }}
+                    slotProps={{ input: { ...other } }}
                     onChange={(e) => {
                       const file = e.target.files[0];
                       field.onChange(file);
@@ -813,7 +898,9 @@ export const CippFormComponent = (props) => {
             </Typography>
           )}
           {helperText && (
-            <Typography variant="subtitle3" color="text.secondary">
+            <Typography variant="subtitle3" sx={{
+              color: "text.secondary"
+            }}>
               {helperText}
             </Typography>
           )}

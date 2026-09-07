@@ -1,6 +1,6 @@
 import { Card, Chip, Skeleton, Stack, SvgIcon, Tooltip, Typography } from '@mui/material'
+import { CippIcons } from '../../utils/icon-registry'
 import { Box } from '@mui/system'
-import { Storage } from '@mui/icons-material'
 import { ApiGetCall } from '../../api/ApiCall'
 import { useSettings } from '../../hooks/use-settings'
 import { usePermissions } from '../../hooks/use-permissions'
@@ -61,12 +61,20 @@ export const CippSharePointQuotaCard = () => {
       <Stack
         direction={{ xs: 'column', md: 'row' }}
         spacing={2}
-        alignItems={{ xs: 'stretch', md: 'center' }}
-        sx={{ px: 2, py: 1.5 }}
-      >
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 180 }}>
+        sx={{
+          alignItems: { xs: 'stretch', md: 'center' },
+          px: 2,
+          py: 1.5
+        }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            alignItems: "center",
+            minWidth: 180
+          }}>
           <SvgIcon fontSize="small" color="primary">
-            <Storage />
+            <CippIcons.Storage />
           </SvgIcon>
           <Typography variant="subtitle2" noWrap>
             Tenant Storage
@@ -79,7 +87,9 @@ export const CippSharePointQuotaCard = () => {
             <Box sx={{ flex: 1, minWidth: 200 }}>
               <LinearProgressWithLabel value={percentage} colourLevels="flipped" addedLabel="used" />
             </Box>
-            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            <Stack direction="row" spacing={1} useFlexGap sx={{
+              flexWrap: "wrap"
+            }}>
               <Tooltip title="Storage used across every site in the tenant">
                 <Chip size="small" variant="outlined" label={`Used ${formatStorage(usedMB)}`} />
               </Tooltip>
@@ -110,13 +120,15 @@ export const CippSharePointQuotaCard = () => {
             </Stack>
           </>
         ) : (
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{
+            color: "text.secondary"
+          }}>
             Tenant storage usage is unavailable for this tenant.
           </Typography>
         )}
       </Stack>
     </Card>
-  )
+  );
 }
 
 export default CippSharePointQuotaCard

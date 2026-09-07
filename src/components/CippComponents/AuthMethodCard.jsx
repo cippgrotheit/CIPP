@@ -1,5 +1,5 @@
 import { Box, Card, CardHeader, CardContent, Typography, Skeleton } from "@mui/material";
-import { People as UsersIcon } from "@mui/icons-material";
+import { CippIcons } from "../../utils/icon-registry";
 import { CippSankey } from "./CippSankey";
 import { useRouter } from "next/router";
 
@@ -44,7 +44,7 @@ export const AuthMethodCard = ({ data, isLoading }) => {
     let whfbCount = 0;
 
     enabledUsers.forEach((user) => {
-      const methods = Array.isArray(user.MFAMethods) ? user.MFAMethods : [];
+      const methods = Array.isArray(user.MFAMethods) ? user.MFAMethods : user.MFAMethods ? [user.MFAMethods] : [];
       const perUser = user.PerUser === "enforced" || user.PerUser === "enabled";
       const hasRegistered = user.MFARegistration === true;
 
@@ -228,7 +228,7 @@ export const AuthMethodCard = ({ data, isLoading }) => {
               "&:hover": { textDecoration: "underline" },
             }}
           >
-            <UsersIcon sx={{ fontSize: 24 }} />
+            <CippIcons.People sx={{ fontSize: 24 }} />
             <Typography variant="h6">All users auth methods</Typography>
           </Box>
         }
@@ -254,7 +254,9 @@ export const AuthMethodCard = ({ data, isLoading }) => {
                 width: "100%",
               }}
             >
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" sx={{
+                color: "text.secondary"
+              }}>
                 No authentication method data available
               </Typography>
             </Box>
@@ -263,7 +265,9 @@ export const AuthMethodCard = ({ data, isLoading }) => {
       </CardContent>
       {!isLoading && processedData?.description && (
         <CardContent sx={{ pt: 2 }}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{
+            color: "text.secondary"
+          }}>
             {processedData.description}
           </Typography>
         </CardContent>

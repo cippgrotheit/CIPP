@@ -2,7 +2,6 @@ import { useCallback, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/router";
 import PropTypes from "prop-types";
-import ArrowLeftIcon from "@heroicons/react/24/outline/ArrowLeftIcon";
 import {
   Box,
   Container,
@@ -15,7 +14,7 @@ import {
   Typography,
 } from "@mui/material";
 import { ActionsMenu } from "../components/actions-menu";
-import { getIconByName } from "../utils/icon-registry";
+import { CippIcons, getIconByName } from "../utils/icon-registry"
 import { useIsMobileLayout } from "../hooks/use-breakpoint";
 import { useActionsDispatch } from "../hooks/use-actions-dispatch";
 import { TabNavigationContext, useTabNavigationValue } from "./tab-navigation-context";
@@ -129,12 +128,15 @@ export const HeaderedTabbedLayout = (props) => {
       // title above them. Gap applies to both axes, so the row gap is set separately or the
       // stacked pairs end up as far apart vertically as they are horizontally.
       <Stack
-        alignItems="center"
-        flexWrap="wrap"
         useFlexGap
         direction="row"
-        sx={{ columnGap: 2, rowGap: 0.5, minWidth: 0 }}
-      >
+        sx={{
+          alignItems: "center",
+          flexWrap: "wrap",
+          columnGap: 2,
+          rowGap: 0.5,
+          minWidth: 0
+        }}>
         {/* minWidth: 0 down the whole chain, and flexShrink: 0 on the icon. A copy-chip
             already carries MUI's ellipsis and maxWidth: 100%, but flex items default to
             min-width: auto, so every ancestor grew to fit instead of letting it truncate —
@@ -148,19 +150,24 @@ export const HeaderedTabbedLayout = (props) => {
           ) : (
             <Stack
               key={index}
-              alignItems="center"
               direction="row"
               spacing={1}
-              sx={{ minWidth: 0, maxWidth: "100%" }}
-            >
+              sx={{
+                alignItems: "center",
+                minWidth: 0,
+                maxWidth: "100%"
+              }}>
               <SvgIcon fontSize="small" sx={{ flexShrink: 0 }}>
                 {item.icon}
               </SvgIcon>
               <Typography
-                color="text.secondary"
+                component="div"
                 variant="body2"
-                sx={{ minWidth: 0, "& .MuiChip-root": { maxWidth: "100%" } }}
-              >
+                sx={{
+                  color: "text.secondary",
+                  minWidth: 0,
+                  "& .MuiChip-root": { maxWidth: "100%" }
+                }}>
                 {item.text}
               </Typography>
             </Stack>
@@ -186,21 +193,23 @@ export const HeaderedTabbedLayout = (props) => {
             <Stack spacing={2}>
               <Stack spacing={1}>
                 <Stack
-                  alignItems={isMobile ? "center" : "flex-start"}
                   direction="row"
-                  justifyContent="space-between"
                   spacing={1}
-                >
+                  sx={{
+                    alignItems: isMobile ? "center" : "flex-start",
+                    justifyContent: "space-between"
+                  }}>
                   {/* minWidth: 0 so a long tenant/entity name truncates in the space the
                       picker leaves rather than pushing it off the right edge of the row.
                       Scoped to the picker's own breakpoint — above md this is unchanged. */}
                   <Stack spacing={1} sx={{ minWidth: { xs: 0, md: "auto" } }}>
                     <Stack
-                      alignItems="center"
                       direction="row"
                       spacing={1}
-                      justifyContent="space-between"
-                    >
+                      sx={{
+                        alignItems: "center",
+                        justifyContent: "space-between"
+                      }}>
                       {/* A name-shaped skeleton, not the word "Loading...": the header is
                           the entity's identity, and a text placeholder reads as a title.
                           titleControl lets a page swap the text for an interactive control
@@ -313,7 +322,8 @@ HeaderedTabbedLayout.propTypes = {
   subtitle: PropTypes.arrayOf(
     PropTypes.shape({
       icon: PropTypes.node.isRequired,
-      text: PropTypes.string.isRequired,
+      // Often a copy-chip (or other node), not plain text — see users/groups headers.
+      text: PropTypes.node.isRequired,
     })
   ),
   actions: PropTypes.arrayOf(

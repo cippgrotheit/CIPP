@@ -1,8 +1,8 @@
 import { useState } from 'react'
+import { CippIcons } from '../../utils/icon-registry'
 import NextLink from 'next/link'
 import PropTypes from 'prop-types'
 import { Box, Button, Card, Collapse, Stack, Typography } from '@mui/material'
-import { ExpandMoreOutlined } from '@mui/icons-material'
 
 // Shared card for the in-app error routes (404, 401, 500). Unlike CippImageCard,
 // which paints a hardcoded neutral.900 slab in both modes, this is built from
@@ -45,9 +45,10 @@ export const CippErrorState = ({
         <Stack
           direction={{ xs: 'column', md: 'row' }}
           spacing={{ xs: 3, md: 5 }}
-          alignItems="center"
-          sx={{ p: { xs: 3, md: 5 } }}
-        >
+          sx={{
+            alignItems: "center",
+            p: { xs: 3, md: 5 }
+          }}>
           {imageUrl && (
             <Box
               component="img"
@@ -87,7 +88,7 @@ export const CippErrorState = ({
                   color="inherit"
                   onClick={() => setDetailOpen((open) => !open)}
                   endIcon={
-                    <ExpandMoreOutlined
+                    <CippIcons.ExpandMoreOutlined
                       sx={{
                         transform: detailOpen ? 'rotate(180deg)' : 'none',
                         transition: 'transform 150ms',
@@ -132,10 +133,11 @@ export const CippErrorState = ({
                 direction="row"
                 spacing={1.5}
                 useFlexGap
-                flexWrap="wrap"
-                justifyContent={{ xs: 'center', md: 'flex-start' }}
-                sx={{ mt: 4 }}
-              >
+                sx={{
+                  flexWrap: "wrap",
+                  justifyContent: { xs: 'center', md: 'flex-start' },
+                  mt: 4
+                }}>
                 {hasPrimary &&
                   (actionHref ? (
                     <Button component={NextLink} href={actionHref} variant="contained">
@@ -157,7 +159,7 @@ export const CippErrorState = ({
         </Stack>
       </Card>
     </Box>
-  )
+  );
 }
 
 CippErrorState.propTypes = {

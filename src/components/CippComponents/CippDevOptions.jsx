@@ -1,4 +1,5 @@
 import { useSettings } from "../../hooks/use-settings";
+import { CippIcons } from "../../utils/icon-registry";
 import {
   Button,
   Card,
@@ -9,7 +10,6 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material";
-import { CodeBracketIcon, BeakerIcon } from "@heroicons/react/24/outline";
 
 export const CippDevOptions = () => {
   const settings = useSettings();
@@ -31,13 +31,15 @@ export const CippDevOptions = () => {
       <CardHeader title="Developer Options" />
       <Divider />
       <CardContent>
-        <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+        <Stack direction="row" spacing={2} useFlexGap sx={{
+          flexWrap: "wrap"
+        }}>
           <Button
             color="inherit"
             onClick={handleDevToolsToggle}
             startIcon={
               <SvgIcon fontSize="small">
-                <CodeBracketIcon />
+                <CippIcons.CodeBracketIcon />
               </SvgIcon>
             }
           >
@@ -48,14 +50,20 @@ export const CippDevOptions = () => {
             onClick={handleAdvancedToggle}
             startIcon={
               <SvgIcon fontSize="small">
-                <BeakerIcon />
+                <CippIcons.BeakerIcon />
               </SvgIcon>
             }
           >
             {settings.showAdvancedTools ? "Disable" : "Enable"} Advanced Views
           </Button>
         </Stack>
-        <Typography color="text.secondary" variant="caption" sx={{ display: "block", mt: 1 }}>
+        <Typography
+          variant="caption"
+          sx={{
+            color: "text.secondary",
+            display: "block",
+            mt: 1
+          }}>
           Advanced Views reveal diagnostic pages (such as audit-log Search Coverage) that are hidden
           from day-to-day operations. This preference is per-user, stored in this browser.
         </Typography>

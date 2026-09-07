@@ -94,6 +94,12 @@ describe('escapeTableCell', () => {
     expect(escapeTableCell('John Doe | Contoso')).toBe('John Doe \\| Contoso')
   })
 
+  it('escapes backslashes so a literal one is not read as an escape', () => {
+    expect(escapeTableCell('CONTOSO\\jdoe')).toBe('CONTOSO\\\\jdoe')
+    // A backslash directly before a pipe must not swallow the pipe escape.
+    expect(escapeTableCell('C:\\|x')).toBe('C:\\\\\\|x')
+  })
+
   it('flattens newlines that would split the row', () => {
     expect(escapeTableCell('Line1\nLine2')).toBe('Line1 Line2')
     expect(escapeTableCell('Line1\r\nLine2')).toBe('Line1 Line2')
@@ -105,10 +111,11 @@ describe('escapeTableCell', () => {
   })
 
   it('round-trips through the parser', () => {
-    const value = 'John Doe | Contoso'
-    expect(parseTableRow(`| ${escapeTableCell(value)} | E3 |`)).toEqual([
-      value,
-      'E3',
-    ])
+    for (const value of ['John Doe | Contoso', 'CONTOSO\\jdoe', 'C:\\|x', 'a\\\\b']) {
+      expect(parseTableRow(`| ${escapeTableCell(value)} | E3 |`)).toEqual([
+        value,
+        'E3',
+      ])
+    }
   })
 })

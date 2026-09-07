@@ -1,15 +1,5 @@
 import { Box, Chip, IconButton, Stack, TextField, Tooltip, Typography } from '@mui/material'
-import {
-  Add,
-  ArrowDownward,
-  ArrowUpward,
-  BarChart as BarChartIcon,
-  Delete,
-  HorizontalRule,
-  Speed,
-  ViewCarousel,
-  Assessment,
-} from '@mui/icons-material'
+import { CippIcons } from '../../utils/icon-registry'
 import CippButtonCard from '../CippCards/CippButtonCard'
 import { CippAutoComplete } from '../CippComponents/CippAutocomplete'
 import { CHART_KINDS, COVER_STOCK_OPTIONS } from '../CippPdf'
@@ -31,11 +21,11 @@ export const STRUCTURED_BLOCK_TYPES = [
 ]
 
 const BLOCK_META = {
-  chart: { label: 'Chart', Icon: BarChartIcon, colour: 'primary' },
-  scorecard: { label: 'Score Cards', Icon: Assessment, colour: 'success' },
-  progress: { label: 'Progress Bars', Icon: Speed, colour: 'info' },
-  hero: { label: 'Section Divider', Icon: ViewCarousel, colour: 'warning' },
-  pagebreak: { label: 'Page Break', Icon: HorizontalRule, colour: 'default' },
+  chart: { label: 'Chart', Icon: CippIcons.BarChart, colour: 'primary' },
+  scorecard: { label: 'Score Cards', Icon: CippIcons.Assessment, colour: 'success' },
+  progress: { label: 'Progress Bars', Icon: CippIcons.Speed, colour: 'info' },
+  hero: { label: 'Section Divider', Icon: CippIcons.ViewCarousel, colour: 'warning' },
+  pagebreak: { label: 'Page Break', Icon: CippIcons.HorizontalRule, colour: 'default' },
 }
 
 export const isStructuredBlock = (type) => Object.prototype.hasOwnProperty.call(BLOCK_META, type)
@@ -105,7 +95,9 @@ const BlockShell = ({ block, index, totalBlocks, onRemove, onMoveUp, onMoveDown,
       title={
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {Icon ? <Icon fontSize="small" color={meta.colour === 'default' ? 'disabled' : meta.colour} /> : null}
-          <Typography variant="subtitle2" fontWeight={600}>
+          <Typography variant="subtitle2" sx={{
+            fontWeight: 600
+          }}>
             {block.title || meta.label}
           </Typography>
           <Chip
@@ -121,7 +113,9 @@ const BlockShell = ({ block, index, totalBlocks, onRemove, onMoveUp, onMoveDown,
         /* The buttons carry their own aria-label rather than relying on the tooltip: a disabled
            button has to be wrapped in a span for the tooltip to fire, and the label would then
            land on the wrapper, leaving the button itself unnamed to a screen reader. */
-        <Stack direction="row" spacing={0.5} alignItems="center">
+        <Stack direction="row" spacing={0.5} sx={{
+          alignItems: "center"
+        }}>
           <Tooltip title="Move up">
             <span>
               <IconButton
@@ -130,7 +124,7 @@ const BlockShell = ({ block, index, totalBlocks, onRemove, onMoveUp, onMoveDown,
                 onClick={() => onMoveUp(index)}
                 disabled={index === 0}
               >
-                <ArrowUpward fontSize="small" />
+                <CippIcons.ArrowUpward fontSize="small" />
               </IconButton>
             </span>
           </Tooltip>
@@ -142,7 +136,7 @@ const BlockShell = ({ block, index, totalBlocks, onRemove, onMoveUp, onMoveDown,
                 onClick={() => onMoveDown(index)}
                 disabled={index === totalBlocks - 1}
               >
-                <ArrowDownward fontSize="small" />
+                <CippIcons.ArrowDownward fontSize="small" />
               </IconButton>
             </span>
           </Tooltip>
@@ -153,7 +147,7 @@ const BlockShell = ({ block, index, totalBlocks, onRemove, onMoveUp, onMoveDown,
               aria-label="Remove block"
               onClick={() => onRemove(index)}
             >
-              <Delete fontSize="small" />
+              <CippIcons.Delete fontSize="small" />
             </IconButton>
           </Tooltip>
         </Stack>
@@ -161,7 +155,7 @@ const BlockShell = ({ block, index, totalBlocks, onRemove, onMoveUp, onMoveDown,
     >
       {children}
     </CippButtonCard>
-  )
+  );
 }
 
 /**
@@ -183,7 +177,9 @@ const RowsEditor = ({ rows, columns, onChange, addLabel = 'Add row', minRows = 1
   return (
     <Stack spacing={1}>
       {rows.map((row, rowIndex) => (
-        <Stack key={rowIndex} direction="row" spacing={1} alignItems="center">
+        <Stack key={rowIndex} direction="row" spacing={1} sx={{
+          alignItems: "center"
+        }}>
           {columns.map((column) => (
             <TextField
               key={column.key}
@@ -204,7 +200,7 @@ const RowsEditor = ({ rows, columns, onChange, addLabel = 'Add row', minRows = 1
                 onClick={() => remove(rowIndex)}
                 disabled={rows.length <= minRows}
               >
-                <Delete fontSize="small" />
+                <CippIcons.Delete fontSize="small" />
               </IconButton>
             </span>
           </Tooltip>
@@ -212,14 +208,16 @@ const RowsEditor = ({ rows, columns, onChange, addLabel = 'Add row', minRows = 1
       ))}
       <Box>
         <IconButton size="small" onClick={add} aria-label={addLabel}>
-          <Add fontSize="small" />
+          <CippIcons.Add fontSize="small" />
         </IconButton>
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant="caption" sx={{
+          color: "text.secondary"
+        }}>
           {addLabel}
         </Typography>
       </Box>
     </Stack>
-  )
+  );
 }
 
 const TitleField = ({ block, index, onUpdate, label = 'Block title', helperText }) => (
@@ -329,13 +327,15 @@ export const ScorecardBlockCard = ({ block, index, onUpdate, ...shell }) => {
           addLabel="Add card"
         />
         {stats.length > 4 ? (
-          <Typography variant="caption" color="warning.main">
+          <Typography variant="caption" sx={{
+            color: "warning.main"
+          }}>
             More than four cards on a row get too narrow to read in the PDF.
           </Typography>
         ) : null}
       </Stack>
     </BlockShell>
-  )
+  );
 }
 
 /* ── Progress bars ───────────────────────────────────────── */
@@ -366,7 +366,9 @@ export const HeroBlockCard = ({ block, index, onUpdate, ...shell }) => {
   return (
     <BlockShell block={block} index={index} {...shell}>
       <Stack spacing={2}>
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant="caption" sx={{
+          color: "text.secondary"
+        }}>
           Takes a full page of its own, with the background image bleeding to the paper edge.
         </Typography>
         <Stack direction="row" spacing={1}>
@@ -418,14 +420,16 @@ export const HeroBlockCard = ({ block, index, onUpdate, ...shell }) => {
         </Stack>
       </Stack>
     </BlockShell>
-  )
+  );
 }
 
 /* ── Page break ──────────────────────────────────────────── */
 
 export const PageBreakBlockCard = ({ block, index, ...shell }) => (
   <BlockShell block={block} index={index} {...shell}>
-    <Typography variant="caption" color="text.secondary">
+    <Typography variant="caption" sx={{
+      color: "text.secondary"
+    }}>
       Everything after this starts on a new page.
     </Typography>
   </BlockShell>

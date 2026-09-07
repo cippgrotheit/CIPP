@@ -1,5 +1,6 @@
 import { getCippFilterVariant } from '../../utils/get-cipp-filter-variant'
 import { getCippFormatting } from '../../utils/get-cipp-formatting'
+import { formatCellText } from './CippCellText'
 import { getCippTranslation } from '../../utils/get-cipp-translation'
 import { getCippColumnSize } from '../../utils/get-cipp-column-size'
 import { SKIP_RECURSION_KEYS as skipRecursion } from '../../utils/skip-recursion-keys'
@@ -168,7 +169,7 @@ const resolveVariables = (columnName, dataSample) => {
       return resolved
     }
     return match // return original if no resolver found
-  })
+  });
 }
 
 const getAtPath = (obj, path) => {
@@ -196,6 +197,9 @@ const mergeKeys = (dataArray) => {
         return base
       }
       Object.keys(obj).forEach((key) => {
+        // API rows are untrusted input; never let a key walk up the prototype chain.
+        // Written as literal comparisons (not a Set lookup) so static analysis can see the guard.
+        if (key === '__proto__' || key === 'constructor' || key === 'prototype') return
         if (
           typeof obj[key] === 'object' &&
           obj[key] !== null &&
@@ -299,7 +303,8 @@ export const utilColumnsFromAPI = (dataArray) => {
           }),
           Cell: ({ row }) => {
             const value = resolveValue(row.original)
-            return getCippFormatting(value, accessorKey)
+            const rendered = getCippFormatting(value, accessorKey)
+            return formatCellText(rendered, false)
           },
         }
 

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { CippIcons } from "../../utils/icon-registry";
 import {
   Alert,
   Button,
@@ -11,7 +12,6 @@ import {
 } from "@mui/material";
 import CSVReader from "../CSVReader";
 import { LoadingButton } from "@mui/lab";
-import { Quiz } from "@mui/icons-material";
 import { ApiPostCall } from "../../api/ApiCall";
 import { Box } from "@mui/system";
 import { CippWizardActionsRow } from "./CippWizardActionsRow";
@@ -82,12 +82,16 @@ export const CippPSACredentialsStep = (props) => {
       <Stack spacing={3}>
         <div>
           <Typography variant="h6">Step 2. Configure Source</Typography>
-          <Typography color="text.secondary" variant="body2"></Typography>
+          <Typography variant="body2" sx={{
+            color: "text.secondary"
+          }}></Typography>
         </div>
         <Stack spacing={2}>
           {values.SyncTool === "CSV" && (
             <>
-              <Typography color="text.secondary" variant="body2">
+              <Typography variant="body2" sx={{
+                color: "text.secondary"
+              }}>
                 <Link
                   href={`data:text/csv;charset=utf-8,%EF%BB%BF${encodeURIComponent(
                     fields.join(",") + "\n"
@@ -97,7 +101,9 @@ export const CippPSACredentialsStep = (props) => {
                   Example CSV
                 </Link>
               </Typography>
-              <Typography color="text.primary" variant="body">
+              <Typography variant="body" sx={{
+                color: "text.primary"
+              }}>
                 <CSVReader
                   name="bulkDevices"
                   onDrop={handleOnDrop}
@@ -200,7 +206,7 @@ export const CippPSACredentialsStep = (props) => {
                   size="small"
                   startIcon={
                     <SvgIcon fontSize="small">
-                      <Quiz />
+                      <CippIcons.Quiz />
                     </SvgIcon>
                   }
                   variant="contained"

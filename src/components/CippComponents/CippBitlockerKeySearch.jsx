@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { CippIcons } from "../../utils/icon-registry";
 import {
   Button,
   Box,
@@ -11,7 +12,6 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import { VpnKey, Computer, CheckCircle, Cancel, Info, Key } from "@mui/icons-material";
 import { ApiGetCall, ApiPostCall } from "../../api/ApiCall";
 import { CippCopyToClipBoard } from "./CippCopyToClipboard";
 
@@ -111,13 +111,15 @@ export const CippBitlockerKeySearch = ({
                     {/* BitLocker Key Information */}
                     <Grid size={{ xs: 12 }}>
                       <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-                        <VpnKey sx={{ fontSize: 18, mr: 1, verticalAlign: "middle" }} />
+                        <CippIcons.VpnKey sx={{ fontSize: 18, mr: 1, verticalAlign: "middle" }} />
                         BitLocker Key Information
                       </Typography>
                     </Grid>
 
                     <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                      <Typography variant="body2" gutterBottom sx={{
+                        color: "text.secondary"
+                      }}>
                         Key ID
                       </Typography>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -131,7 +133,9 @@ export const CippBitlockerKeySearch = ({
                     </Grid>
 
                     <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                      <Typography variant="body2" gutterBottom sx={{
+                        color: "text.secondary"
+                      }}>
                         Volume Type
                       </Typography>
                       <Chip
@@ -142,7 +146,9 @@ export const CippBitlockerKeySearch = ({
                     </Grid>
 
                     <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                      <Typography variant="body2" gutterBottom sx={{
+                        color: "text.secondary"
+                      }}>
                         Created
                       </Typography>
                       <Typography variant="body2">
@@ -153,14 +159,18 @@ export const CippBitlockerKeySearch = ({
                     </Grid>
 
                     <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                      <Typography variant="body2" gutterBottom sx={{
+                        color: "text.secondary"
+                      }}>
                         Tenant
                       </Typography>
                       <Typography variant="body2">{result.tenant || "N/A"}</Typography>
                     </Grid>
 
                     <Grid size={{ xs: 12, sm: 6, md: 8 }}>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                      <Typography variant="body2" gutterBottom sx={{
+                        color: "text.secondary"
+                      }}>
                         Recovery Key
                       </Typography>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -179,7 +189,7 @@ export const CippBitlockerKeySearch = ({
                             size="small"
                             variant="outlined"
                             startIcon={
-                              loadingKeys[result.keyId] ? <CircularProgress size={16} /> : <Key />
+                              loadingKeys[result.keyId] ? <CircularProgress size={16} /> : <CippIcons.Key />
                             }
                             onClick={() =>
                               handleRetrieveKey(result.keyId, result.deviceId, result.tenant)
@@ -198,20 +208,24 @@ export const CippBitlockerKeySearch = ({
                         <Grid size={{ xs: 12 }}>
                           <Divider sx={{ my: 2 }} />
                           <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-                            <Computer sx={{ fontSize: 18, mr: 1, verticalAlign: "middle" }} />
+                            <CippIcons.Computer sx={{ fontSize: 18, mr: 1, verticalAlign: "middle" }} />
                             Device Information
                           </Typography>
                         </Grid>
 
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                          <Typography variant="body2" color="text.secondary" gutterBottom>
+                          <Typography variant="body2" gutterBottom sx={{
+                            color: "text.secondary"
+                          }}>
                             Device Name
                           </Typography>
                           <Typography variant="body2">{result.deviceName || "N/A"}</Typography>
                         </Grid>
 
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                          <Typography variant="body2" color="text.secondary" gutterBottom>
+                          <Typography variant="body2" gutterBottom sx={{
+                            color: "text.secondary"
+                          }}>
                             Device ID
                           </Typography>
                           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -225,7 +239,9 @@ export const CippBitlockerKeySearch = ({
                         </Grid>
 
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                          <Typography variant="body2" color="text.secondary" gutterBottom>
+                          <Typography variant="body2" gutterBottom sx={{
+                            color: "text.secondary"
+                          }}>
                             Operating System
                           </Typography>
                           <Typography variant="body2">
@@ -235,15 +251,17 @@ export const CippBitlockerKeySearch = ({
                         </Grid>
 
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                          <Typography variant="body2" color="text.secondary" gutterBottom>
+                          <Typography variant="body2" gutterBottom sx={{
+                            color: "text.secondary"
+                          }}>
                             Account Status
                           </Typography>
                           <Chip
                             icon={
                               result.accountEnabled ? (
-                                <CheckCircle sx={{ fontSize: 16 }} />
+                                <CippIcons.CheckCircle sx={{ fontSize: 16 }} />
                               ) : (
-                                <Cancel sx={{ fontSize: 16 }} />
+                                <CippIcons.Cancel sx={{ fontSize: 16 }} />
                               )
                             }
                             label={result.accountEnabled ? "Enabled" : "Disabled"}
@@ -253,14 +271,18 @@ export const CippBitlockerKeySearch = ({
                         </Grid>
 
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                          <Typography variant="body2" color="text.secondary" gutterBottom>
+                          <Typography variant="body2" gutterBottom sx={{
+                            color: "text.secondary"
+                          }}>
                             Trust Type
                           </Typography>
                           <Typography variant="body2">{result.trustType || "N/A"}</Typography>
                         </Grid>
 
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                          <Typography variant="body2" color="text.secondary" gutterBottom>
+                          <Typography variant="body2" gutterBottom sx={{
+                            color: "text.secondary"
+                          }}>
                             Last Sign In
                           </Typography>
                           <Typography variant="body2">
@@ -272,7 +294,7 @@ export const CippBitlockerKeySearch = ({
 
                     {!result.deviceFound && (
                       <Grid size={{ xs: 12 }}>
-                        <Alert severity="warning" icon={<Info />}>
+                        <Alert severity="warning" icon={<CippIcons.Info />}>
                           Device information not found in cache. The device may have been deleted or
                           not yet synced.
                         </Alert>

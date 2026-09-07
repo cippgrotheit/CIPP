@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { CippIcons } from "../../utils/icon-registry";
 import PropTypes from "prop-types";
 import {
   Box,
@@ -11,8 +12,6 @@ import {
   MenuItem,
   Typography,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { useDispatch } from "react-redux";
 import axios from "axios";
 import { buildVersionedHeaders } from "../../utils/cippVersion";
@@ -164,7 +163,7 @@ export const CippCredentialExpandList = ({
 
   const addSecretButton = canAddSecret ? (
     <Box sx={{ px: 1, pb: 1 }}>
-      <Button size="small" startIcon={<AddIcon />} onClick={() => addDialog.handleOpen()}>
+      <Button size="small" startIcon={<CippIcons.Add />} onClick={() => addDialog.handleOpen()}>
         Add secret
       </Button>
     </Box>
@@ -227,7 +226,9 @@ export const CippCredentialExpandList = ({
     return (
       <Box sx={{ py: 2, px: 3 }}>
         {addSecretButton}
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" sx={{
+          color: "text.secondary"
+        }}>
           No {credentialType === "password" ? "secrets" : "certificates"} configured.
         </Typography>
         {addSecretDialog}
@@ -257,7 +258,7 @@ export const CippCredentialExpandList = ({
                       setMenuCred(cred);
                     }}
                   >
-                    <MoreVertIcon fontSize="small" />
+                    <CippIcons.MoreVert fontSize="small" />
                   </IconButton>
                 ) : null
               }
@@ -265,9 +266,10 @@ export const CippCredentialExpandList = ({
               <ListItemText
                 primary={credentialPrimaryLabel(cred, credentialType)}
                 secondary={keyId ? `keyId: ${keyId}` : undefined}
-                primaryTypographyProps={{ variant: "body2" }}
-                secondaryTypographyProps={{ variant: "caption" }}
-              />
+                slotProps={{
+                  primary: { variant: "body2" },
+                  secondary: { variant: "caption" }
+                }} />
             </ListItem>
           );
         })}

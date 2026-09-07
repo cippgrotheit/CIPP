@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CippIcons } from "../../utils/icon-registry";
 import {
   Accordion,
   AccordionSummary,
@@ -6,7 +7,6 @@ import {
   Button,
   Typography,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Grid } from "@mui/system";
 import { useForm } from "react-hook-form";
 import CippFormComponent from "./CippFormComponent";
@@ -35,7 +35,7 @@ export const CippDateRangeFilter = ({
 
   const onSubmit = (data) => {
     if (data.dateFilter === "relative") {
-      onApply?.({ RelativeTime: `${data.Time}${data.Interval.value}`, StartDate: null, EndDate: null });
+      onApply?.({ RelativeTime: `${data.Time ?? ""}${data.Interval.value}`, StartDate: null, EndDate: null });
     } else if (data.dateFilter === "startEnd") {
       onApply?.({ RelativeTime: null, StartDate: data.startDate, EndDate: data.endDate });
     }
@@ -43,7 +43,7 @@ export const CippDateRangeFilter = ({
 
   return (
     <Accordion expanded={expanded} onChange={() => setExpanded(!expanded)}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+      <AccordionSummary expandIcon={<CippIcons.ExpandMore />}>
         <Typography>{title}</Typography>
       </AccordionSummary>
       <AccordionDetails>

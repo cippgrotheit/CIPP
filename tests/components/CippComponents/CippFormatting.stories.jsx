@@ -19,7 +19,12 @@ const FormattingShowcase = ({ cases }) => (
           <TableRow key={`${cellName}-${i}`}>
             <TableCell>
               <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>{cellName}</Typography>
-              {description && <Typography variant="caption" display="block" color="text.secondary">{description}</Typography>}
+              {description && <Typography
+                variant="caption"
+                sx={{
+                  display: "block",
+                  color: "text.secondary"
+                }}>{description}</Typography>}
             </TableCell>
             <TableCell>
               <Typography variant="caption" sx={{ fontFamily: 'monospace', maxWidth: 200, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -148,7 +153,7 @@ export const Booleans = {
       await expect(canvasElement.textContent).toContain('Yes')
       await expect(canvasElement.textContent).toContain('No')
       expect(canvasElement.querySelector('[data-testid="CheckIcon"]')).not.toBeNull()
-      expect(canvasElement.querySelector('[data-testid="CancelIcon"]')).not.toBeNull()
+      expect(canvasElement.querySelector('[data-testid="CloseIcon"]')).not.toBeNull()
     })
 
     await step('enabled+date renders the scheduled variant', async () => {
@@ -363,9 +368,9 @@ export const JSONStrings = {
 export const MiscFields = {
   args: {
     cases: [
-      { cellName: 'hardwareHash', data: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', description: 'Long hardware hash (truncated)' },
+      { cellName: 'hardwareHash', data: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', description: 'Long hardware hash (CSS ellipsis + hover tooltip)' },
       { cellName: 'hardwareHash', data: 'SHORT', description: 'Short hardware hash' },
-      { cellName: 'Message', data: 'A very long log message that exceeds 120 characters and should be truncated with an ellipsis because it is too long to display in a table cell without wrapping.', description: 'Long message (truncated)' },
+      { cellName: 'Message', data: 'A very long log message that exceeds 120 characters and should be truncated with an ellipsis because it is too long to display in a table cell without wrapping.', description: 'Long message (CSS ellipsis + hover tooltip)' },
       { cellName: 'Message', data: 'Short message', description: 'Short message' },
       { cellName: 'info.logoUrl', data: 'https://via.placeholder.com/16', description: 'Logo URL' },
       { cellName: 'info.logoUrl', data: null, description: 'No logo' },
@@ -384,8 +389,13 @@ export const MiscFields = {
     ],
   },
   play: async ({ canvasElement, step }) => {
-    await step('long hashes truncate at 15 chars, bulk users count', async () => {
-      await expect(canvasElement.textContent).toContain('ABCDEFGHIJKLMNO...')
+    await step('long strings keep their full text in an ellipsis cell, bulk users count', async () => {
+      // Truncation is CSS-only now (CippCellText applies text-overflow: ellipsis and shows the
+      // full value in a hover tooltip), so the DOM must contain the untruncated string.
+      const cells = Array.from(canvasElement.querySelectorAll('.cipp-cell-text'))
+      const hashCell = cells.find((el) => el.textContent === 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+      expect(hashCell).not.toBeUndefined()
+      expect(canvasElement.textContent).not.toContain('ABCDEFGHIJKLMNO...')
       await expect(canvasElement.textContent).toContain('5 new users to create')
     })
 

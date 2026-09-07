@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useCallback } from "react";
 import { useForm } from "react-hook-form";
-import { Layout as DashboardLayout } from "../../../../layouts/index.js";
+import { Layout as DashboardLayout } from "../../../../layouts/index";
 import CippFormPage from "../../../../components/CippFormPages/CippFormPage";
 import CippFormSkeleton from "../../../../components/CippFormPages/CippFormSkeleton";
 import ContactFormLayout from "../../../../components/CippFormPages/CippAddEditContact";
 import { ApiGetCall } from "../../../../api/ApiCall";
 import countryList from "../../../../data/countryList.json";
 import { useRouter } from "next/router";
+import { Alert } from "@mui/material";
 
 const EditContactTemplate = () => {
   const router = useRouter();
@@ -128,15 +129,21 @@ const EditContactTemplate = () => {
     <CippFormPage
       formControl={formControl}
       queryKey={`ListContactTemplates-${id}`}
-      title={`Contact Template: ${contactTemplateInfo?.displayName || ""}`}
+      title={contactTemplate?.displayName ? `Contact Template: ${contactTemplate.displayName}` : "Contact Template"}
       backButtonTitle="Contact Templates"
       formPageType="Edit"
       postUrl="/api/EditContactTemplates"
       data={contactTemplate}
       customDataformatter={customDataFormatter}
+      hideSubmit={!id}
     >
-      {contactTemplateInfo.isLoading && <CippFormSkeleton layout={[2, 2, 1, 2, 1, 2, 2, 2, 4]} />}
-      {!contactTemplateInfo.isLoading && (
+      {!id && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          No contact template selected. Open this page from the Contact Templates list to edit a template.
+        </Alert>
+      )}
+      {id && contactTemplateInfo.isLoading && <CippFormSkeleton layout={[2, 2, 1, 2, 1, 2, 2, 2, 4]} />}
+      {id && !contactTemplateInfo.isLoading && (
         <ContactFormLayout formControl={formControl} formType="edit" />
       )}
     </CippFormPage>

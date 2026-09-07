@@ -424,10 +424,13 @@ describe('CippDataTable card view without an offCanvas', () => {
     await waitFor(() => expect(screen.getByText('Alice Smith')).toBeInTheDocument())
     await user.click(screen.getByText('Alice Smith'))
 
-    // 'text' mode would flatten the boolean to the string "Yes"; the cell renderer uses an icon.
+    // 'text' mode would flatten the boolean to a plain "Yes" text node; the cell renderer uses
+    // an icon instead — an SVG with role=img whose accessible name is "Yes" (titleAccess), which
+    // is what a table cell renders too. Assert the icon is present rather than the absence of the
+    // word, since that accessible name legitimately contains "Yes".
     // Anchored: unanchored, this would also pass on "notcontoso.com" — and CodeQL flags it.
     await waitFor(() => expect(screen.getAllByText(/^contoso\.com$/).length).toBeGreaterThan(0))
-    expect(screen.queryByText('Yes')).toBeNull()
+    expect(screen.getAllByRole('img', { name: 'Yes' }).length).toBeGreaterThan(0)
   })
 
   it('spells out portal links instead of showing a bare icon', async () => {
@@ -994,4 +997,101 @@ describe('CippDataTable subTables', () => {
 
     expect(await screen.findByText('Add Members for Finance?')).toBeInTheDocument()
   })
+})
+
+describe('CippDataTable preset filterFn overrides', () => {
+  // Mirrors the Domain Analyser presets: 'notEquals' / 'notContains' modes applied only
+  // while a preset drives that column, so plain contains-style presets on the same
+  // column aren't left permanently inverted by an earlier notContains preset.
+  const domainRows = [
+    { Domain: 'contoso.com', MailProvider: 'Microsoft 365' },
+    { Domain: 'fabrikam.onmicrosoft.com', MailProvider: 'Microsoft 365' },
+    { Domain: 'contoso.onmicrosoft.com', MailProvider: 'Google Workspace' },
+    { Domain: 'northwind.onmicrosoft.com', MailProvider: 'Microsoft 365' },
+  ]
+
+  const domainFilters = [
+    {
+      filterName: 'Mail Provider is not Microsoft 365',
+      value: [{ id: 'MailProvider', value: 'Microsoft 365', filterFn: 'notEquals' }],
+      type: 'column',
+    },
+    {
+      filterName: 'onmicrosoft.com Domains',
+      value: [{ id: 'Domain', value: 'onmicrosoft.com' }],
+      type: 'column',
+    },
+    {
+      filterName: 'All Except onmicrosoft.com Domains',
+      value: [{ id: 'Domain', value: 'onmicrosoft.com', filterFn: 'notContains' }],
+      type: 'column',
+    },
+  ]
+
+  function renderDomainTable() {
+    return renderWithProviders(
+      <CippDataTable
+        data={domainRows}
+        simpleColumns={['Domain', 'MailProvider']}
+        filters={domainFilters}
+        maxHeightOffset="100px"
+      />
+    )
+  }
+
+  it('applies a notEquals preset', async () => {
+    const user = userEvent.setup()
+    renderDomainTable()
+    await screen.findByText('1-4 of 4')
+
+    await user.click(screen.getByRole('button', { name: /Filters/ }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Mail Provider is not Microsoft 365' }))
+    await waitFor(() => {
+      expect(screen.getByText('1-1 of 1')).toBeInTheDocument()
+    })
+  }, 30000)
+
+  it('applies a notContains preset', async () => {
+    const user = userEvent.setup()
+    renderDomainTable()
+    await screen.findByText('1-4 of 4')
+
+    await user.click(screen.getByRole('button', { name: /Filters/ }))
+    await user.click(await screen.findByRole('menuitem', { name: 'All Except onmicrosoft.com Domains' }))
+    await waitFor(() => {
+      expect(screen.getByText('1-1 of 1')).toBeInTheDocument()
+    })
+  }, 30000)
+
+  it('does not leave a notContains override active for a later plain preset on the same column', async () => {
+    const user = userEvent.setup()
+    renderDomainTable()
+    await screen.findByText('1-4 of 4')
+
+    await user.click(screen.getByRole('button', { name: /Filters/ }))
+    await user.click(await screen.findByRole('menuitem', { name: 'All Except onmicrosoft.com Domains' }))
+    await waitFor(() => {
+      expect(screen.getByText('1-1 of 1')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /Filters/ }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Reset all filters' }))
+    await waitFor(() => {
+      expect(screen.getByText('1-4 of 4')).toBeInTheDocument()
+    })
+    // the menu's exit transition can leave the rest of the page aria-hidden for a
+    // tick after the click resolves — wait for it to fully unmount before querying
+    // the Filters button again, or that query can transiently fail
+    await waitFor(() => {
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+    })
+
+    // if the notContains mode had leaked, this plain contains-style preset on the
+    // same Domain column would come back inverted (1 row) instead of 3
+    await user.click(screen.getByRole('button', { name: /Filters/ }))
+    await user.click(await screen.findByRole('menuitem', { name: 'onmicrosoft.com Domains' }))
+    await waitFor(() => {
+      expect(screen.getByText('1-3 of 3')).toBeInTheDocument()
+    })
+  }, 30000)
 })

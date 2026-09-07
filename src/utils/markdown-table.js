@@ -97,5 +97,11 @@ export const normaliseTableRow = (cells, columnCount) => {
  */
 export const escapeTableCell = (value) => {
   if (value === null || value === undefined) return ''
-  return String(value).replace(/\|/g, '\\|').replace(/\r?\n/g, ' ').trim()
+  // Backslashes first: they are the escape character parseTableRow honours, so a literal
+  // one (CONTOSO\jdoe) has to be doubled before the pipe escape adds new ones.
+  return String(value)
+    .replace(/\\/g, '\\\\')
+    .replace(/\|/g, '\\|')
+    .replace(/\r?\n/g, ' ')
+    .trim()
 }

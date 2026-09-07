@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
-import { Layout as DashboardLayout } from "../../../../layouts/index.js";
+import { Layout as DashboardLayout } from "../../../../layouts/index";
 import CippFormPage from "../../../../components/CippFormPages/CippFormPage";
 import CippFormSkeleton from "../../../../components/CippFormPages/CippFormSkeleton";
 import { useSettings } from "../../../../hooks/use-settings";
@@ -9,7 +9,7 @@ import { ApiGetCall } from "../../../../api/ApiCall";
 import countryList from "../../../../data/countryList.json";
 import { Grid } from "@mui/system";
 import CippFormComponent from "../../../../components/CippComponents/CippFormComponent";
-import { Divider } from "@mui/material";
+import { Divider, Alert } from "@mui/material";
 
 const countryLookup = new Map(countryList.map((country) => [country.Name, country.Code]));
 
@@ -137,16 +137,22 @@ const EditContact = () => {
     <CippFormPage
       formControl={formControl}
       queryKey={`ListContacts-${id}`}
-      title={`Contact: ${contact?.displayName || ""}`}
+      title={contact?.displayName ? `Contact: ${contact.displayName}` : "Contact"}
       backButtonTitle="Contacts Overview"
       formPageType="Edit"
       postUrl="/api/EditContact"
       data={contact}
       customDataformatter={customDataFormatter}
       preserveNullValues
+      hideSubmit={!id}
     >
-      {contactInfo.isLoading && <CippFormSkeleton layout={[2, 2, 1, 2, 1, 2, 2, 2, 4]} />}
-      {!contactInfo.isLoading && (
+      {!id && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          No contact selected. Open this page from the Contacts list to edit a contact.
+        </Alert>
+      )}
+      {id && contactInfo.isLoading && <CippFormSkeleton layout={[2, 2, 1, 2, 1, 2, 2, 2, 4]} />}
+      {id && !contactInfo.isLoading && (
         <Grid container spacing={2}>
           {/* Display Name */}
           <Grid size={{ md: 10, xs: 12 }}>

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { CippIcons } from '../../utils/icon-registry'
 import NextLink from 'next/link'
 import { Box, Button, Chip, IconButton, Link, Stack, Typography, useMediaQuery } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
-import { Close, ErrorOutline, InfoOutlined, WarningAmber } from '@mui/icons-material'
 import { formatDistanceStrict } from 'date-fns'
 
 // Dismissal is keyed on the notice id so that re-issuing an edited notice brings the banner back
@@ -13,9 +13,9 @@ const DISMISS_DURATION_MS = 24 * 60 * 60 * 1000 // 1 day, matching FailedPayment
 const SEVERITIES = ['info', 'warning', 'error']
 
 const ICONS = {
-  info: InfoOutlined,
-  warning: WarningAmber,
-  error: ErrorOutline,
+  info: CippIcons.InfoOutlined,
+  warning: CippIcons.WarningAmber,
+  error: CippIcons.ErrorOutlined,
 }
 
 // localStorage throws in locked-down browsers - never let that break the layout.
@@ -221,20 +221,31 @@ export const CippMaintenanceBanner = ({ alert }) => {
         borderBottom: `1px solid ${solid ? alpha('#000000', 0.18) : alpha(palette.main, 0.42)}`,
         boxShadow: solid ? 'none' : `inset 0 3px 0 0 ${palette.main}`,
         px: { xs: 2, md: 3 },
-        py: 1.25,
+        // Extend into the status-bar region under black-translucent / notched devices;
+        // the measured --cipp-banner-h then carries the inset for chrome below.
+        pt: 'calc(10px + env(safe-area-inset-top, 0px))',
+        pb: 1.25,
       }}
     >
       {/* Top-aligned so the icon and actions sit level with the title when the message wraps. */}
-      <Stack direction="row" spacing={1.5} alignItems="flex-start">
+      <Stack direction="row" spacing={1.5} sx={{
+        alignItems: "flex-start"
+      }}>
         <Icon fontSize="small" sx={{ color: solid ? 'inherit' : palette.main, mt: 0.25 }} />
 
-        <Stack useFlexGap
+        <Stack
+          useFlexGap
           direction={{ xs: 'column', md: 'row' }}
           spacing={{ xs: 0.25, md: 1.5 }}
-          alignItems={{ xs: 'flex-start', md: 'baseline' }}
-          sx={{ flexGrow: 1, minWidth: 0, flexWrap: 'wrap' }}
-        >
-          <Stack direction="row" spacing={1} alignItems="center">
+          sx={{
+            alignItems: { xs: 'flex-start', md: 'baseline' },
+            flexGrow: 1,
+            minWidth: 0,
+            flexWrap: 'wrap'
+          }}>
+          <Stack direction="row" spacing={1} sx={{
+            alignItems: "center"
+          }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
               {alert.title}
             </Typography>
@@ -297,7 +308,13 @@ export const CippMaintenanceBanner = ({ alert }) => {
           )}
         </Stack>
 
-        <Stack direction="row" spacing={0.5} alignItems="center" sx={{ flexShrink: 0 }}>
+        <Stack
+          direction="row"
+          spacing={0.5}
+          sx={{
+            alignItems: "center",
+            flexShrink: 0
+          }}>
           {link && (
             <Button
               size="small"
@@ -328,11 +345,11 @@ export const CippMaintenanceBanner = ({ alert }) => {
                 '&:hover': { backgroundColor: alpha(solid ? '#FFFFFF' : palette.main, 0.16) },
               }}
             >
-              <Close fontSize="inherit" />
+              <CippIcons.Close fontSize="inherit" />
             </IconButton>
           )}
         </Stack>
       </Stack>
     </Box>
-  )
+  );
 }

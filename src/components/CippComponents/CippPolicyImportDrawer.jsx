@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { CippIcons } from '../../utils/icon-registry'
 import {
   Button,
   Stack,
@@ -13,7 +14,6 @@ import {
   ToggleButton,
   ToggleButtonGroup,
 } from '@mui/material'
-import { CloudUpload, Search, Visibility } from '@mui/icons-material'
 import { useForm, useWatch } from 'react-hook-form'
 import { CippOffCanvas } from './CippOffCanvas'
 import { ApiGetCall, ApiPostCall } from '../../api/ApiCall'
@@ -232,7 +232,7 @@ export const CippPolicyImportDrawer = ({
       <PermissionButton
         {...(PermissionButton === Button ? {} : { requiredPermissions })}
         onClick={() => setDrawerVisible(true)}
-        startIcon={<CloudUpload />}
+        startIcon={<CippIcons.CloudUpload />}
       >
         {buttonText}
       </PermissionButton>
@@ -242,7 +242,9 @@ export const CippPolicyImportDrawer = ({
         onClose={handleCloseDrawer}
         size="xl"
         footer={
-          <Stack direction="row" justifyContent="flex-start" spacing={2}>
+          <Stack direction="row" spacing={2} sx={{
+            justifyContent: "flex-start"
+          }}>
             <Button variant="outlined" onClick={handleCloseDrawer}>
               Close
             </Button>
@@ -292,11 +294,13 @@ export const CippPolicyImportDrawer = ({
                 label="Search Policies"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                InputProps={{
-                  startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />,
-                }}
                 placeholder="Search by policy name or description..."
                 sx={{ mb: 2 }}
+                slotProps={{
+                  input: {
+                    startAdornment: <CippIcons.Search sx={{ mr: 1, color: 'text.secondary' }} />,
+                  }
+                }}
               />
 
               <Typography variant="h6" sx={{ mb: 1 }}>
@@ -308,7 +312,13 @@ export const CippPolicyImportDrawer = ({
                   <>
                     {[...Array(3)].map((_, index) => (
                       <Box key={index} sx={{ mb: 3 }}>
-                        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
+                        <Stack
+                          direction="row"
+                          spacing={2}
+                          sx={{
+                            alignItems: "center",
+                            mb: 1
+                          }}>
                           <Skeleton variant="rectangular" width={80} height={36} />
                           <Skeleton variant="rectangular" width={120} height={36} />
                           <Skeleton variant="text" width={300} height={32} />
@@ -322,7 +332,13 @@ export const CippPolicyImportDrawer = ({
                     if (!policy) return null
                     return (
                       <Box key={policy.id || policy.GUID || index} sx={{ mb: 3 }}>
-                        <Stack direction="row" spacing={2} alignItems="flex-start" sx={{ mb: 1 }}>
+                        <Stack
+                          direction="row"
+                          spacing={2}
+                          sx={{
+                            alignItems: "flex-start",
+                            mb: 1
+                          }}>
                           <Button
                             variant="contained"
                             color="primary"
@@ -334,7 +350,7 @@ export const CippPolicyImportDrawer = ({
                           </Button>
                           <Button
                             variant="outlined"
-                            startIcon={<Visibility />}
+                            startIcon={<CippIcons.EyeIcon />}
                             onClick={() => handleViewPolicy(policy)}
                             sx={{ minWidth: 120, flexShrink: 0 }}
                           >
@@ -345,21 +361,30 @@ export const CippPolicyImportDrawer = ({
                               {formatPolicyName(policy)}
                             </Typography>
                             {policy?.description && (
-                              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  color: "text.secondary",
+                                  mt: 0.5
+                                }}>
                                 {policy.description}
                               </Typography>
                             )}
                           </Box>
                         </Stack>
                       </Box>
-                    )
+                    );
                   })
                 ) : tenantFilter?.value ? (
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" sx={{
+                    color: "text.secondary"
+                  }}>
                     No policies available.
                   </Typography>
                 ) : (
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" sx={{
+                    color: "text.secondary"
+                  }}>
                     Select a tenant to browse its policies.
                   </Typography>
                 )}
@@ -396,5 +421,5 @@ export const CippPolicyImportDrawer = ({
         </DialogActions>
       </Dialog>
     </>
-  )
+  );
 }

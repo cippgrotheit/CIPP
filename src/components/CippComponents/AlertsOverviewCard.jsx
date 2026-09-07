@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { CippIcons } from '../../utils/icon-registry'
 import {
   Box,
   Button,
@@ -13,12 +14,6 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import {
-  DeleteOutline as DeleteIcon,
-  NotificationsActive as AlertIcon,
-  Settings as SettingsIcon,
-  Snooze as SnoozeIcon,
-} from '@mui/icons-material'
 import Link from 'next/link'
 import { ApiGetCall } from '../../api/ApiCall'
 import { getCippError } from '../../utils/get-cipp-error'
@@ -55,7 +50,7 @@ const describeSnooze = (snooze) => {
 
 const SnoozeStatusChip = ({ snooze }) => {
   if (snooze.Status === 'Forever') {
-    return <Chip size="small" variant="outlined" icon={<SnoozeIcon />} label="Forever" />
+    return <Chip size="small" variant="outlined" icon={<CippIcons.Snooze />} label="Forever" />
   }
   if (snooze.Status === 'Expired') {
     return <Chip size="small" variant="outlined" label="Expired" />
@@ -64,7 +59,7 @@ const SnoozeStatusChip = ({ snooze }) => {
     <Chip
       size="small"
       variant="outlined"
-      icon={<SnoozeIcon />}
+      icon={<CippIcons.Snooze />}
       label={`${snooze.RemainingDays}d`}
     />
   )
@@ -160,14 +155,14 @@ export const AlertsOverviewCard = ({ tenantFilter, sx }) => {
             size="small"
             color={activeItems.length ? 'error' : 'success'}
             variant={activeItems.length ? 'filled' : 'outlined'}
-            icon={<AlertIcon />}
+            icon={<CippIcons.NotificationsActive />}
             label={`${activeItems.length} Active`}
           />
           <Chip
             size="small"
             color="warning"
             variant="outlined"
-            icon={<SnoozeIcon />}
+            icon={<CippIcons.Snooze />}
             label={`${activeSnoozeCount} Snoozed`}
           />
         </Stack>
@@ -181,32 +176,45 @@ export const AlertsOverviewCard = ({ tenantFilter, sx }) => {
                 const secondary = detail ? `${label} · ${detail}` : label
                 return (
                   <Box key={`active-${item.CmdletName}-${item.ContentHash}-${index}`} sx={rowSx}>
-                    <Box sx={{ minWidth: 0 }}>
-                      <Typography variant="body2" fontWeight={500} noWrap title={title}>
+                    {/* flex: 1 + minWidth: 0 lets the ellipsis engage before the row runs under the icon */}
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography variant="body2" noWrap title={title} sx={{
+                        fontWeight: 500
+                      }}>
                         {title}
                       </Typography>
-                      <Typography variant="caption" color="text.secondary" noWrap title={secondary}>
+                      <Typography variant="caption" noWrap title={secondary} sx={{
+                        color: "text.secondary"
+                      }}>
                         {secondary}
                       </Typography>
                     </Box>
                     <Tooltip title="Snooze this alert">
-                      <IconButton size="small" onClick={() => setSnoozeTarget(item)}>
-                        <SnoozeIcon fontSize="small" />
+                      <IconButton size="small" onClick={() => setSnoozeTarget(item)} sx={{ flexShrink: 0 }}>
+                        <CippIcons.Snooze fontSize="small" />
                       </IconButton>
                     </Tooltip>
                   </Box>
-                )
+                );
               })}
             </Stack>
           ) : (
-            <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: "text.secondary",
+                py: 2,
+                textAlign: 'center'
+              }}>
               No active alerts for this tenant.
             </Typography>
           )}
 
           {sortedSnoozes.length > 0 && (
             <Box sx={{ mt: 1.5 }}>
-              <Typography variant="overline" color="text.secondary">
+              <Typography variant="overline" sx={{
+                color: "text.secondary"
+              }}>
                 Snoozed
               </Typography>
               <Stack divider={<Divider flexItem />}>
@@ -220,15 +228,18 @@ export const AlertsOverviewCard = ({ tenantFilter, sx }) => {
                       key={`snoozed-${snooze.PartitionKey}-${snooze.RowKey}`}
                       sx={{ ...rowSx, opacity: 0.55 }}
                     >
-                      <Box sx={{ minWidth: 0 }}>
+                      {/* flex: 1 + minWidth: 0 lets the ellipsis engage before the row runs under the icons */}
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
                         <Typography variant="body2" noWrap title={title}>
                           {title}
                         </Typography>
                         <Typography
                           variant="caption"
-                          color="text.secondary"
                           noWrap
                           title={secondary}
+                          sx={{
+                            color: "text.secondary"
+                          }}
                         >
                           {secondary}
                         </Typography>
@@ -236,25 +247,26 @@ export const AlertsOverviewCard = ({ tenantFilter, sx }) => {
                       <Stack
                         direction="row"
                         spacing={0.5}
-                        alignItems="center"
-                        sx={{ flexShrink: 0 }}
-                      >
+                        sx={{
+                          alignItems: "center",
+                          flexShrink: 0
+                        }}>
                         <SnoozeStatusChip snooze={snooze} />
                         <Tooltip title="Remove snooze">
                           <IconButton size="small" onClick={() => removeDialog.handleOpen(snooze)}>
-                            <DeleteIcon fontSize="small" />
+                            <CippIcons.DeleteOutlined fontSize="small" />
                           </IconButton>
                         </Tooltip>
                       </Stack>
                     </Box>
-                  )
+                  );
                 })}
               </Stack>
             </Box>
           )}
         </Box>
       </>
-    )
+    );
   }
 
   return (
@@ -262,7 +274,7 @@ export const AlertsOverviewCard = ({ tenantFilter, sx }) => {
       <CardHeader
         title={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <AlertIcon sx={{ fontSize: 20 }} />
+            <CippIcons.NotificationsActive sx={{ fontSize: 20 }} />
             <Typography variant="subtitle1">Alerts</Typography>
           </Box>
         }
@@ -271,7 +283,7 @@ export const AlertsOverviewCard = ({ tenantFilter, sx }) => {
             component={Link}
             href="/tenant/administration/alert-configuration"
             size="small"
-            startIcon={<SettingsIcon />}
+            startIcon={<CippIcons.Settings />}
           >
             Manage
           </Button>

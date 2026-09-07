@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
+import { CippIcons } from '../../utils/icon-registry'
 import { Box, Button, Stack, Typography } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
-import { Logout, TheaterComedy } from '@mui/icons-material'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   exitImpersonation,
@@ -76,13 +76,16 @@ export const CippImpersonationBanner = () => {
         borderBottom: `1px solid ${alpha(palette.main, 0.42)}`,
         boxShadow: `inset 0 3px 0 0 ${palette.main}`,
         px: { xs: 2, md: 3 },
-        // the 3px inset accent bar eats into the top, so give it a bit more than the bottom
-        pt: 1.875,
+        // the 3px inset accent bar eats into the top, so give it a bit more than the bottom;
+        // safe-area extends the tint under the status bar and is published via --cipp-banner-h
+        pt: 'calc(15px + env(safe-area-inset-top, 0px))',
         pb: 1.5,
       }}
     >
-      <Stack direction="row" spacing={1.5} alignItems="center">
-        <TheaterComedy fontSize="small" sx={{ color: palette.main }} />
+      <Stack direction="row" spacing={1.5} sx={{
+        alignItems: "center"
+      }}>
+        <CippIcons.TheaterComedy fontSize="small" sx={{ color: palette.main }} />
         <Typography variant="body2" sx={{ flexGrow: 1, minWidth: 0 }}>
           Impersonating <strong>{role}</strong> — you are seeing CIPP as this role sees it. API
           access is enforced under this role until you exit.
@@ -91,7 +94,7 @@ export const CippImpersonationBanner = () => {
           size="small"
           variant="outlined"
           color="warning"
-          startIcon={<Logout fontSize="small" />}
+          startIcon={<CippIcons.Logout fontSize="small" />}
           onClick={() => exitImpersonation(queryClient)}
           sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}
         >
@@ -99,5 +102,5 @@ export const CippImpersonationBanner = () => {
         </Button>
       </Stack>
     </Box>
-  )
+  );
 }

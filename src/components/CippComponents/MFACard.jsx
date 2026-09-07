@@ -1,5 +1,5 @@
 import { Box, Card, CardHeader, CardContent, Typography, Skeleton } from "@mui/material";
-import { Person as UserIcon } from "@mui/icons-material";
+import { CippIcons } from "../../utils/icon-registry";
 import { CippSankey } from "./CippSankey";
 import { useRouter } from "next/router";
 
@@ -221,7 +221,7 @@ export const MFACard = ({ data, isLoading }) => {
               "&:hover": { textDecoration: "underline" },
             }}
           >
-            <UserIcon sx={{ fontSize: 24 }} />
+            <CippIcons.Person sx={{ fontSize: 24 }} />
             <Typography variant="h6">User authentication</Typography>
           </Box>
         }
@@ -247,7 +247,9 @@ export const MFACard = ({ data, isLoading }) => {
                 width: "100%",
               }}
             >
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" sx={{
+                color: "text.secondary"
+              }}>
                 No MFA data available
               </Typography>
             </Box>
@@ -256,7 +258,9 @@ export const MFACard = ({ data, isLoading }) => {
       </CardContent>
       {!isLoading && processedData?.description && (
         <CardContent sx={{ pt: 2 }}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{
+            color: "text.secondary"
+          }}>
             {processedData.description}
           </Typography>
         </CardContent>

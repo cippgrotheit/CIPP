@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { CippIcons } from '../../utils/icon-registry'
 import {
   Box,
   Card,
@@ -12,14 +13,6 @@ import {
 } from '@mui/material'
 import { Grid } from '@mui/system'
 import Link from 'next/link'
-import {
-  ArrowTrendingDownIcon,
-  ArrowTrendingUpIcon,
-  EyeIcon,
-  ExclamationTriangleIcon,
-  ShieldCheckIcon,
-  TrophyIcon,
-} from '@heroicons/react/24/outline'
 import { ApiGetCall } from '../../api/ApiCall.jsx'
 import { getCippError } from '../../utils/get-cipp-error'
 import { CippInfoBar } from '../CippCards/CippInfoBar'
@@ -57,9 +50,10 @@ const LeaderboardCard = ({ title, subheader, rows, isFetching }) => (
     <CardHeader
       title={title}
       subheader={subheader}
-      titleTypographyProps={{ variant: 'h6' }}
-      subheaderTypographyProps={{ variant: 'caption' }}
-    />
+      slotProps={{
+        title: { variant: 'h6' },
+        subheader: { variant: 'caption' }
+      }} />
     <Divider />
     <CardContent sx={{ flex: 1 }}>
       {isFetching ? (
@@ -69,7 +63,13 @@ const LeaderboardCard = ({ title, subheader, rows, isFetching }) => (
           ))}
         </Stack>
       ) : rows.length === 0 ? (
-        <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+        <Typography
+          variant="body2"
+          sx={{
+            color: "text.secondary",
+            py: 2,
+            textAlign: 'center'
+          }}>
           No scored tenants yet
         </Typography>
       ) : (
@@ -80,22 +80,24 @@ const LeaderboardCard = ({ title, subheader, rows, isFetching }) => (
               component={Link}
               href={`/tenant/administration/securescore?tenantFilter=${row.tenant}`}
               direction="row"
-              alignItems="center"
               spacing={1.5}
               sx={{
+                alignItems: "center",
                 px: 1,
                 py: 0.75,
                 borderRadius: 1,
                 textDecoration: 'none',
                 color: 'inherit',
-                '&:hover': { backgroundColor: 'action.hover' },
-              }}
-            >
+                '&:hover': { backgroundColor: 'action.hover' }
+              }}>
               <Typography
                 variant="caption"
-                color="text.disabled"
-                sx={{ width: 24, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}
-              >
+                sx={{
+                  color: "text.disabled",
+                  width: 24,
+                  flexShrink: 0,
+                  fontVariantNumeric: 'tabular-nums'
+                }}>
                 #{row.rank}
               </Typography>
               <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -157,20 +159,20 @@ export const AllTenantsSecureScoreSummary = () => {
     {
       name: 'Portfolio average',
       data: `${summary.average}%`,
-      icon: <ShieldCheckIcon />,
+      icon: <CippIcons.ShieldCheckIcon />,
       toolTip: `Average of each tenant's latest cached score, across ${summary.scored} tenants`,
     },
     {
       name: summary.trend.length > 1 ? `Change over ${summary.trend.length} days` : 'Change',
       data: deltaLabel,
-      icon: summary.delta < 0 ? <ArrowTrendingDownIcon /> : <ArrowTrendingUpIcon />,
+      icon: summary.delta < 0 ? <CippIcons.ArrowTrendingDownIcon /> : <CippIcons.ArrowTrendingUpIcon />,
       color: summary.delta < 0 ? 'error' : summary.delta > 0 ? 'success' : 'primary',
       toolTip: 'Movement of the portfolio average across the retained history window',
     },
     {
       name: 'Highest',
       data: summary.best ? `${summary.best.percent}%` : '—',
-      icon: <TrophyIcon />,
+      icon: <CippIcons.TrophyIcon />,
       color: 'success',
       toolTip: summary.best
         ? `${summary.best.name} — ${summary.best.current} of ${summary.best.max} points`
@@ -179,7 +181,7 @@ export const AllTenantsSecureScoreSummary = () => {
     {
       name: 'Lowest',
       data: summary.worst ? `${summary.worst.percent}%` : '—',
-      icon: <ExclamationTriangleIcon />,
+      icon: <CippIcons.ExclamationTriangleIcon />,
       color: 'error',
       toolTip: summary.worst
         ? `${summary.worst.name} — ${summary.worst.current} of ${summary.worst.max} points`
@@ -208,9 +210,10 @@ export const AllTenantsSecureScoreSummary = () => {
             <CardHeader
               title="Portfolio trend"
               subheader="Daily average of every tenant's cached score"
-              titleTypographyProps={{ variant: 'h6' }}
-              subheaderTypographyProps={{ variant: 'caption' }}
-            />
+              slotProps={{
+                title: { variant: 'h6' },
+                subheader: { variant: 'caption' }
+              }} />
             <Divider />
             <CardContent sx={{ flex: 1 }}>
               <AllTenantsTrendChart
@@ -240,7 +243,7 @@ export const AllTenantsSecureScoreSummary = () => {
         </Grid>
       </Grid>
     </Stack>
-  )
+  );
 }
 
 export const AllTenantsSecureScoreTable = () => {
@@ -252,12 +255,18 @@ export const AllTenantsSecureScoreTable = () => {
     return (
       <Card>
         <CardContent>
-          <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: "text.secondary",
+              py: 2,
+              textAlign: 'center'
+            }}>
             No cached secure scores yet. Scores appear after the nightly cache job has run.
           </Typography>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -279,7 +288,7 @@ export const AllTenantsSecureScoreTable = () => {
         {
           label: 'View tenant secure score',
           link: '/tenant/administration/securescore?tenantFilter=[Tenant]',
-          icon: <EyeIcon />,
+          icon: <CippIcons.EyeIcon />,
         },
       ]}
     />

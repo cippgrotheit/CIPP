@@ -261,6 +261,7 @@
   },
   {
     "type": "OneDriveSiteListing",
+    "collectedBy": "OneDriveUsage",
     "friendlyName": "OneDrive Site Listing",
     "description": "OneDrive personal site listing details used for usage reporting"
   },
@@ -270,7 +271,13 @@
     "description": "OneDrive usage statistics"
   },
   {
+    "type": "OneDriveLongPaths",
+    "friendlyName": "OneDrive Long Paths",
+    "description": "Per-user counts of OneDrive paths that may exceed Windows 260-character sync limits or the cloud 400-character ceiling (no file or folder names stored)"
+  },
+  {
     "type": "SharePointSiteListing",
+    "collectedBy": "SharePointSiteUsage",
     "friendlyName": "SharePoint Site Listing",
     "description": "SharePoint site listing details used for usage reporting"
   },
@@ -278,6 +285,11 @@
     "type": "SharePointSiteUsage",
     "friendlyName": "SharePoint Site Usage",
     "description": "SharePoint site usage statistics"
+  },
+  {
+    "type": "SPOSites",
+    "friendlyName": "SharePoint Site Settings",
+    "description": "Per-site SharePoint admin settings (site owner, sharing controls, lifecycle, version policy, People Picker, unmanaged-device access) for every site collection, keyed by site id"
   },
   {
     "type": "SiteActivity",
@@ -293,6 +305,11 @@
     "type": "SharePointPermissions",
     "friendlyName": "SharePoint Permissions",
     "description": "Site and document library permission assignments, including libraries that no longer inherit and grants to tenant-wide claims such as Everyone except external users"
+  },
+  {
+    "type": "StorageCleanupScan",
+    "friendlyName": "Storage Cleanup Scan",
+    "description": "Per-site library version estimates and recycle totals for the storage report cleanup signals. Report-private; not used by other CIPP features."
   },
   {
     "type": "ConditionalAccessPolicies",

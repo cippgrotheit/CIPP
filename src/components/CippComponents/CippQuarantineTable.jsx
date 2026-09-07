@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { CippIcons } from '../../utils/icon-registry'
 import {
   CircularProgress,
   Dialog,
@@ -8,17 +9,6 @@ import {
   Skeleton,
   Typography,
 } from '@mui/material'
-import { Block, Close, Done, DoneAll } from '@mui/icons-material'
-import {
-  ArrowDownTrayIcon,
-  ArrowTopRightOnSquareIcon,
-  CodeBracketIcon,
-  DocumentTextIcon,
-  EyeIcon,
-  FlagIcon,
-  NoSymbolIcon,
-  TrashIcon,
-} from '@heroicons/react/24/outline'
 import { CippTablePage } from './CippTablePage.jsx'
 import { CippMessageViewer } from './CippMessageViewer.jsx'
 import { CippQuarantineDetails } from './CippQuarantineDetails.jsx'
@@ -101,7 +91,18 @@ export const CippQuarantineTable = ({ entityType = 'Email' }) => {
   const [traceDetails, setTraceDetails] = useState([])
   const [traceMessageId, setTraceMessageId] = useState(null)
   const [traceTenant, setTraceTenant] = useState(null)
+  const [traceWindow, setTraceWindow] = useState(null)
   const [messageSubject, setMessageSubject] = useState(null)
+
+  // Graph's message trace window caps at 10 days and defaults to ~48h with none supplied,
+  // so pin an explicit +/-1 day window around the message's received time when we have one.
+  const getTraceWindow = (receivedTime) => {
+    if (!receivedTime) return null
+    const receivedMs = new Date(receivedTime).getTime()
+    if (Number.isNaN(receivedMs)) return null
+    const receivedSeconds = Math.floor(receivedMs / 1000)
+    return { startDate: receivedSeconds - 86400, endDate: receivedSeconds + 86400 }
+  }
 
   const messageTenant = resolveTenant(messageRow)
   const getMessageContents = ApiGetCall({
@@ -140,7 +141,7 @@ export const CippQuarantineTable = ({ entityType = 'Email' }) => {
     urlFromData: true,
     queryKey: `MessageTraceDetail-${traceTenant}-${traceMessageId}`,
     onResult: (result) => {
-      setTraceDetails(result)
+      setTraceDetails(result?.Results ?? result)
     },
   })
 
@@ -168,13 +169,16 @@ export const CippQuarantineTable = ({ entityType = 'Email' }) => {
   const viewMessageTrace = (...args) => {
     const row = resolveRow(...args)
     const rowTenant = resolveTenant(row)
+    const window = getTraceWindow(row.ReceivedTime)
     setTraceTenant(rowTenant)
     setTraceMessageId(row.MessageId)
+    setTraceWindow(window)
     getMessageTraceDetails.mutate({
       url: '/api/ListMessageTrace',
       data: {
         tenantFilter: rowTenant,
         messageId: row.MessageId,
+        ...(window ?? {}),
       },
     })
     setMessageSubject(row.Subject)
@@ -253,7 +257,7 @@ export const CippQuarantineTable = ({ entityType = 'Email' }) => {
         Type: '!Release',
       },
       confirmText: 'Are you sure you want to release this message?',
-      icon: <Done />,
+      icon: <CippIcons.Done />,
       condition: (row) => row.ReleaseStatus !== 'RELEASED',
     },
     ...(isEmail
@@ -273,7 +277,7 @@ export const CippQuarantineTable = ({ entityType = 'Email' }) => {
             },
             confirmText:
               'Are you sure you want to release this email and add the sender to the whitelist?',
-            icon: <DoneAll />,
+            icon: <CippIcons.DoneAll />,
             condition: (row) => row.ReleaseStatus !== 'RELEASED',
           },
           {
@@ -288,7 +292,7 @@ export const CippQuarantineTable = ({ entityType = 'Email' }) => {
               RecipientAddress: 'RecipientAddress',
             },
             confirmText: 'Are you sure you want to deny this message?',
-            icon: <Block />,
+            icon: <CippIcons.Block />,
             condition: (row) => row.ReleaseStatus === 'REQUESTED',
           },
         ]
@@ -305,7 +309,7 @@ export const CippQuarantineTable = ({ entityType = 'Email' }) => {
       },
       confirmText:
         'Are you sure you want to permanently delete this message from quarantine? This action cannot be undone.',
-      icon: <TrashIcon />,
+      icon: <CippIcons.Delete />,
       color: 'danger',
       condition: (row) => row.ReleaseStatus !== 'RELEASED',
     },
@@ -315,28 +319,28 @@ export const CippQuarantineTable = ({ entityType = 'Email' }) => {
             label: 'Preview Message',
             noConfirm: true,
             customFunction: viewMessage,
-            icon: <EyeIcon />,
+            icon: <CippIcons.EyeIcon />,
             hideBulk: true,
           },
           {
             label: 'View Message Headers',
             noConfirm: true,
             customFunction: viewHeaders,
-            icon: <CodeBracketIcon />,
+            icon: <CippIcons.CodeBracketIcon />,
             hideBulk: true,
           },
           {
             label: 'Download Message (.eml)',
             noConfirm: true,
             customFunction: downloadMessage,
-            icon: <ArrowDownTrayIcon />,
+            icon: <CippIcons.ArrowDownTrayIcon />,
             hideBulk: true,
           },
           {
             label: 'View Message Trace',
             noConfirm: true,
             customFunction: viewMessageTrace,
-            icon: <DocumentTextIcon />,
+            icon: <CippIcons.DocumentTextIcon />,
             hideBulk: true,
           },
           {
@@ -368,7 +372,7 @@ export const CippQuarantineTable = ({ entityType = 'Email' }) => {
               },
             ],
             confirmText: 'Submit "[Subject]" to Microsoft for analysis?',
-            icon: <FlagIcon />,
+            icon: <CippIcons.FlagIcon />,
             hideBulk: true,
           },
           {
@@ -395,13 +399,13 @@ export const CippQuarantineTable = ({ entityType = 'Email' }) => {
             ],
             confirmText:
               'Block sender [SenderAddress] by adding an entry to the Tenant Allow/Block List?',
-            icon: <NoSymbolIcon />,
+            icon: <CippIcons.NoSymbolIcon />,
           },
           {
             label: 'Open Email Entity in Defender',
             noConfirm: true,
             customFunction: openInDefender,
-            icon: <ArrowTopRightOnSquareIcon />,
+            icon: <CippIcons.ArrowTopRightOnSquareIcon />,
             hideBulk: true,
           },
         ]
@@ -458,7 +462,7 @@ export const CippQuarantineTable = ({ entityType = 'Email' }) => {
             onClick={() => setDialogOpen(false)}
             sx={{ position: 'absolute', right: 8, top: 8 }}
           >
-            <Close />
+            <CippIcons.Close />
           </IconButton>
         </DialogTitle>
         <DialogContent dividers>
@@ -484,7 +488,7 @@ export const CippQuarantineTable = ({ entityType = 'Email' }) => {
             onClick={() => setHeaderDialogOpen(false)}
             sx={{ position: 'absolute', right: 8, top: 8 }}
           >
-            <Close />
+            <CippIcons.Close />
           </IconButton>
         </DialogTitle>
         <DialogContent dividers>
@@ -518,7 +522,7 @@ export const CippQuarantineTable = ({ entityType = 'Email' }) => {
             onClick={() => setTraceDialogOpen(false)}
             sx={{ position: 'absolute', right: 8, top: 8 }}
           >
-            <Close />
+            <CippIcons.Close />
           </IconButton>
         </DialogTitle>
         <DialogContent dividers>
@@ -540,6 +544,7 @@ export const CippQuarantineTable = ({ entityType = 'Email' }) => {
                   data: {
                     tenantFilter: traceTenant,
                     messageId: traceMessageId,
+                    ...(traceWindow ?? {}),
                   },
                 })
               }

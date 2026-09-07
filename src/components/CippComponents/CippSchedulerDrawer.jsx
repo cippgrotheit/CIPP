@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
+import { CippIcons } from "../../utils/icon-registry";
 import { Button, Box, Typography, Alert, AlertTitle } from "@mui/material";
 import { useForm, useFormState } from "react-hook-form";
-import { CalendarDaysIcon } from "@heroicons/react/24/outline";
 import { CippOffCanvas } from "./CippOffCanvas";
 import CippSchedulerForm from "../CippFormPages/CippSchedulerForm";
 import { useSettings } from "../../hooks/use-settings";
@@ -61,9 +61,9 @@ export const CippSchedulerDrawer = ({
   return (
     <>
       <PermissionButton
-        requiredPermissions={requiredPermissions}
+        {...(PermissionButton !== Button ? { requiredPermissions } : {})}
         onClick={handleOpenDrawer}
-        startIcon={<CalendarDaysIcon />}
+        startIcon={<CippIcons.CalendarDaysIcon />}
       >
         {buttonText}
       </PermissionButton>

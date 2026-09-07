@@ -1,9 +1,9 @@
 import { useEffect } from "react";
+import { CippIcons } from "../../../../../utils/icon-registry";
 import { Alert, Box, Divider, IconButton, Tooltip, Typography } from "@mui/material";
-import { Sync } from "@mui/icons-material";
 import { Grid } from "@mui/system";
 import { useForm, useWatch } from "react-hook-form";
-import { Layout as DashboardLayout } from "../../../../../layouts/index.js";
+import { Layout as DashboardLayout } from "../../../../../layouts/index";
 import CippFormPage from "../../../../../components/CippFormPages/CippFormPage";
 import CippFormComponent from "../../../../../components/CippComponents/CippFormComponent";
 import CippFormSkeleton from "../../../../../components/CippFormPages/CippFormSkeleton";
@@ -174,7 +174,9 @@ const EditRoomMailbox = () => {
     <CippFormPage
       formControl={formControl}
       queryKey={`Room-${roomId}`}
-      title="Edit Room Mailbox"
+      title="Room Mailbox"
+      formPageType="Edit"
+      hideSubmit={!roomId}
       backButtonTitle="Room Mailboxes Overview"
       postUrl="/api/EditRoomMailbox"
       customDataformatter={(values) => ({
@@ -232,6 +234,11 @@ const EditRoomMailbox = () => {
         WorkingHoursTimeZone: values.WorkingHoursTimeZone?.value || values.WorkingHoursTimeZone,
       })}
     >
+      {!roomId && (
+        <Alert severity="info">
+          No room mailbox selected. Open this page from the Room Mailboxes list.
+        </Alert>
+      )}
       {roomInfo.isFetching && (
         <CippFormSkeleton layout={[2, 3, 1, 2, 3, 2, 1, 2, 3, 1, 3, 1, 3, 1]} />
       )}
@@ -243,7 +250,7 @@ const EditRoomMailbox = () => {
               <Typography variant="subtitle1">Basic Information</Typography>
               <Tooltip title="Refresh">
                 <IconButton size="small" onClick={() => roomInfo.refetch()}>
-                  <Sync fontSize="small" />
+                  <CippIcons.Sync fontSize="small" />
                 </IconButton>
               </Tooltip>
             </Box>
@@ -280,9 +287,7 @@ const EditRoomMailbox = () => {
               label="Room Capacity"
               name="capacity"
               formControl={formControl}
-              InputProps={{
-                inputProps: { min: 0 },
-              }}
+              slotProps={{ htmlInput: { min: 0 } }}
             />
           </Grid>
           <Grid size={{ md: 4, xs: 12 }}>
@@ -295,9 +300,7 @@ const EditRoomMailbox = () => {
                 min: { value: 1, message: "Minimum duration is 1 minute" },
                 max: { value: 1440, message: "Maximum duration is 1440 minutes (24 hours)" },
               }}
-              InputProps={{
-                inputProps: { min: 1, max: 1440 },
-              }}
+              slotProps={{ htmlInput: { min: 1, max: 1440 } }}
               fullWidth
             />
           </Grid>
@@ -311,9 +314,7 @@ const EditRoomMailbox = () => {
                 min: { value: 0, message: "Minimum is 0 days" },
                 max: { value: 1080, message: "Maximum is 1080 days (3 years)" },
               }}
-              InputProps={{
-                inputProps: { min: 0, max: 1080 },
-              }}
+              slotProps={{ htmlInput: { min: 0, max: 1080 } }}
               fullWidth
             />
           </Grid>

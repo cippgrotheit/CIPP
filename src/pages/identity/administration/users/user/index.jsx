@@ -1,29 +1,8 @@
-import { Layout as DashboardLayout } from '../../../../../layouts/index.js'
+import { Layout as DashboardLayout } from '../../../../../layouts/index'
+import { CippIcons } from '../../../../../utils/icon-registry'
 import { useSettings } from '../../../../../hooks/use-settings'
 import { useRouter } from 'next/router'
 import { ApiGetCall, ApiPostCall } from '../../../../../api/ApiCall'
-import CalendarIcon from '@heroicons/react/24/outline/CalendarIcon'
-import {
-  AdminPanelSettings,
-  Check,
-  Delete,
-  Dialpad,
-  Group,
-  Key,
-  Language,
-  Laptop,
-  LockPerson,
-  Mail,
-  Fingerprint,
-  Launch,
-  Devices,
-  Password,
-  PersonRemove,
-  PhoneIphone,
-  QrCode,
-  Smartphone,
-  VpnKey,
-} from '@mui/icons-material'
 import { HeaderedTabbedLayout } from '../../../../../layouts/HeaderedTabbedLayout'
 import tabOptions from './tabOptions'
 import { CippCopyToClipBoard } from '../../../../../components/CippComponents/CippCopyToClipboard'
@@ -34,9 +13,9 @@ import { CippUserSwitcher } from '../../../../../components/CippComponents/CippU
 import { SvgIcon, Typography } from '@mui/material'
 import { CippBannerListCard } from '../../../../../components/CippCards/CippBannerListCard'
 import { CippTimeAgo } from '../../../../../components/CippComponents/CippTimeAgo'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useState, useRef } from 'react'
 import { useCippUserActions } from '../../../../../components/CippComponents/CippUserActions'
-import { EyeIcon, PencilIcon } from '@heroicons/react/24/outline'
+import { useCippRoleAssignmentActions } from '../../../../../components/CippComponents/CippRoleAssignmentActions'
 import { CippDataTable } from '../../../../../components/CippTable/CippDataTable'
 import dynamic from 'next/dynamic'
 const CippMap = dynamic(
@@ -45,7 +24,6 @@ const CippMap = dynamic(
     ssr: false,
   }
 )
-
 import {
   Button,
   Dialog,
@@ -53,7 +31,6 @@ import {
   DialogContent,
   IconButton,
 } from '@mui/material'
-import { Close } from '@mui/icons-material'
 import { CippPropertyList } from '../../../../../components/CippComponents/CippPropertyList'
 import { CippCodeBlock } from '../../../../../components/CippComponents/CippCodeBlock'
 import { CippHead } from '../../../../../components/CippComponents/CippHead'
@@ -104,19 +81,19 @@ const SYSTEM_PREF_METHOD_TYPES = {
 const MFA_METHOD_TYPES = {
   microsoftAuthenticatorAuthenticationMethod: {
     label: 'Microsoft Authenticator',
-    icon: <PhoneIphone />,
+    icon: <CippIcons.PhoneIphone />,
     identifier: (method) => method.displayName || method.deviceTag,
   },
   passwordlessMicrosoftAuthenticatorAuthenticationMethod: {
     // Deprecated by Graph, but still present on users registered before the merge.
     label: 'Microsoft Authenticator (passwordless)',
-    icon: <PhoneIphone />,
+    icon: <CippIcons.PhoneIphone />,
     identifier: (method) => method.displayName,
   },
   phoneAuthenticationMethod: {
     // SMS and voice are the same registration — phoneType is what separates them.
     label: 'Phone',
-    icon: <Smartphone />,
+    icon: <CippIcons.Smartphone />,
     identifier: (method) =>
       method.phoneNumber && method.phoneType
         ? `${method.phoneNumber} (${method.phoneType})`
@@ -124,51 +101,51 @@ const MFA_METHOD_TYPES = {
   },
   fido2AuthenticationMethod: {
     label: 'Passkey (FIDO2)',
-    icon: <VpnKey />,
+    icon: <CippIcons.Key />,
     identifier: (method) => method.model || method.displayName,
   },
   softwareOathAuthenticationMethod: {
     // Any TOTP-capable app, not just Microsoft Authenticator — password managers included.
     label: 'Software OATH token',
-    icon: <Dialpad />,
+    icon: <CippIcons.Dialpad />,
     identifier: (method) => method.displayName,
   },
   hardwareOathAuthenticationMethod: {
     // This type has no displayName; the serial number lives on the device
     // relationship, which Graph only returns when explicitly expanded.
     label: 'Hardware OATH token',
-    icon: <Password />,
+    icon: <CippIcons.Password />,
     identifier: (method) => method.device?.serialNumber,
   },
   emailAuthenticationMethod: {
     label: 'Email',
-    icon: <Mail />,
+    icon: <CippIcons.Mail />,
     identifier: (method) => method.emailAddress,
   },
   windowsHelloForBusinessAuthenticationMethod: {
     label: 'Windows Hello for Business',
-    icon: <Fingerprint />,
+    icon: <CippIcons.Fingerprint />,
     identifier: (method) => method.displayName,
   },
   platformCredentialAuthenticationMethod: {
     label: 'Platform credential',
-    icon: <Laptop />,
+    icon: <CippIcons.Laptop />,
     identifier: (method) => method.displayName || method.platform,
   },
   temporaryAccessPassAuthenticationMethod: {
     label: 'Temporary Access Pass',
-    icon: <Key />,
+    icon: <CippIcons.Key />,
     identifier: () => null,
   },
   qrCodePinAuthenticationMethod: {
     // Only id and lastUsedDateTime come back on this type — nothing to identify it by.
     label: 'QR code',
-    icon: <QrCode />,
+    icon: <CippIcons.QrCode />,
     identifier: () => null,
   },
   externalAuthenticationMethod: {
     label: 'External provider',
-    icon: <Language />,
+    icon: <CippIcons.Language />,
     identifier: (method) => method.displayName,
   },
 }
@@ -180,7 +157,7 @@ const getMethodType = (method) =>
 const getMethodMeta = (method) =>
   MFA_METHOD_TYPES[getMethodType(method)] ?? {
     label: getMethodType(method),
-    icon: <Check />,
+    icon: <CippIcons.Check />,
     identifier: () => null,
   }
 
@@ -225,7 +202,7 @@ const SignInLogsDialog = ({ open, onClose, userId, tenantFilter }) => {
           onClick={onClose}
           sx={{ position: 'absolute', right: 8, top: 8 }}
         >
-          <Close />
+          <CippIcons.Close />
         </IconButton>
       </DialogTitle>
       <DialogContent dividers>
@@ -287,6 +264,16 @@ const Page = () => {
   const userBulkRequest = ApiPostCall({
     urlFromData: true,
   })
+  const bulkFetchedForId = useRef(null)
+
+  const roleAssignments = ApiGetCall({
+    url: `/api/ListRoleAssignments?principalId=${userId}&tenantFilter=${
+      router.query.tenantFilter ?? userSettingsDefaults.currentTenant
+    }`,
+    queryKey: `ListRoleAssignments-${userId}`,
+    waiting: waiting,
+  })
+  const roleAssignmentActions = useCippRoleAssignmentActions()
 
   const userPrincipalName = userRequest.data?.[0]?.userPrincipalName
 
@@ -323,11 +310,12 @@ const Page = () => {
       })
     }
 
+    bulkFetchedForId.current = userId
     userBulkRequest.mutate({
       url: '/api/ListGraphBulkRequest',
       data: {
         Requests: requests,
-        tenantFilter: userSettingsDefaults.currentTenant,
+        tenantFilter: router.query.tenantFilter ?? userSettingsDefaults.currentTenant,
         noPaginateIds: ['signInLogs', 'signInPreferences'],
       },
     })
@@ -338,7 +326,7 @@ const Page = () => {
       userId &&
       userSettingsDefaults.currentTenant &&
       userRequest.isSuccess &&
-      !userBulkRequest.isSuccess
+      bulkFetchedForId.current !== userId
     ) {
       refreshFunction()
     }
@@ -346,7 +334,6 @@ const Page = () => {
     userId,
     userSettingsDefaults.currentTenant,
     userRequest.isSuccess,
-    userBulkRequest.isSuccess,
   ])
 
   const bulkData = userBulkRequest?.data?.data ?? []
@@ -377,7 +364,7 @@ const Page = () => {
   const subtitle = userRequest.isSuccess
     ? [
         {
-          icon: <Mail />,
+          icon: <CippIcons.Mail />,
           text: (
             <CippCopyToClipBoard
               type="chip"
@@ -386,13 +373,13 @@ const Page = () => {
           ),
         },
         {
-          icon: <Fingerprint />,
+          icon: <CippIcons.Fingerprint />,
           text: (
             <CippCopyToClipBoard type="chip" text={userRequest.data?.[0]?.id} />
           ),
         },
         {
-          icon: <CalendarIcon />,
+          icon: <CippIcons.CalendarIcon />,
           text: (
             <>
               Created:{' '}
@@ -401,7 +388,7 @@ const Page = () => {
           ),
         },
         {
-          icon: <Launch style={{ color: '#667085' }} />,
+          icon: <CippIcons.Launch />,
           text: (
             <Button
               color="muted"
@@ -456,7 +443,7 @@ const Page = () => {
           onClick={() => setSignInLogsDialogOpen(true)}
           startIcon={
             <SvgIcon fontSize="small">
-              <EyeIcon />
+              <CippIcons.EyeIcon />
             </SvgIcon>
           }
         >
@@ -756,7 +743,7 @@ const Page = () => {
                 removeMethodDialog.handleOpen()
               }}
             >
-              <Delete fontSize="small" />
+              <CippIcons.Delete fontSize="small" />
             </IconButton>
           ) : undefined,
           propertyItems: [
@@ -848,7 +835,7 @@ const Page = () => {
         {
           id: 1,
           cardLabelBox: {
-            cardLabelBoxHeader: <Group />,
+            cardLabelBoxHeader: <CippIcons.Group />,
           },
           text: 'Groups',
           subtext: 'List of groups the user is a member of',
@@ -863,9 +850,10 @@ const Page = () => {
             hideTitle: true,
             actions: [
               {
-                icon: <PencilIcon />,
+                icon: <CippIcons.Edit />,
                 label: 'Edit Group',
                 link: '/identity/administration/groups/edit?groupId=[id]&groupType=[calculatedGroupType]',
+                pinned: true,
               },
             ],
             data: userMemberOf?.filter(
@@ -883,61 +871,40 @@ const Page = () => {
       ]
     : []
 
-  const roleMembershipItems = userMemberOf
+  // Role assignments come from the PIM-aware endpoint so the card can tell a permanent
+  // assignment from an eligible or time-bound one and offer the secure-direction actions.
+  const roleAssignmentRows = roleAssignments.data ?? []
+  const permanentRoleCount = roleAssignmentRows.filter(
+    (row) => row.AssignmentType === 'Permanent'
+  ).length
+  const eligibleRoleCount = roleAssignmentRows.filter(
+    (row) => row.AssignmentType === 'Eligible'
+  ).length
+  const roleMembershipItems = roleAssignments.isSuccess
     ? [
         {
           id: 1,
           cardLabelBox: {
-            cardLabelBoxHeader: <AdminPanelSettings />,
+            cardLabelBoxHeader: <CippIcons.AdminPanelSettings />,
           },
           text: 'Admin Roles',
-          subtext: 'List of roles the user is a member of',
-          statusText: ` ${
-            userMemberOf?.filter(
-              (item) =>
-                item?.['@odata.type'] === '#microsoft.graph.directoryRole'
-            ).length
-          } Role(s)`,
-          statusColor: 'info.main',
+          subtext:
+            'Directory roles held by this user and how they are assigned (permanent, eligible or time-bound)',
+          statusText: ` ${roleAssignmentRows.length} assignment(s) - ${permanentRoleCount} permanent, ${eligibleRoleCount} eligible`,
+          statusColor: permanentRoleCount > 0 ? 'warning.main' : 'info.main',
           table: {
             title: 'Admin Roles',
             hideTitle: true,
-            actions: [
-              {
-                label: 'Remove from Role',
-                type: 'POST',
-                icon: <PersonRemove />,
-                url: '/api/ExecRemoveAdminRole',
-                data: {
-                  RoleId: 'id',
-                  RoleName: 'displayName',
-                  Users: 'Users',
-                },
-                confirmText:
-                  'Are you sure you want to remove this user from [displayName]?',
-                allowResubmit: true,
-                onSuccess: refreshFunction,
-                condition: (row) => canWriteRole && !!row?.id,
-              },
+            actions: roleAssignmentActions,
+            data: roleAssignmentRows,
+            simpleColumns: [
+              'RoleDisplayName',
+              'AssignmentType',
+              'MemberType',
+              'Scope',
+              'EndDateTime',
+              'PolicySummary',
             ],
-            data: userMemberOf
-              ?.filter(
-                (item) =>
-                  item?.['@odata.type'] === '#microsoft.graph.directoryRole'
-              )
-              .map((role) => ({
-                ...role,
-                Users: [
-                  {
-                    value: userRequest.data?.[0]?.id ?? userId,
-                    label:
-                      userRequest.data?.[0]?.userPrincipalName ??
-                      userRequest.data?.[0]?.displayName ??
-                      userId,
-                  },
-                ],
-              })),
-            simpleColumns: ['displayName', 'description'],
             refreshFunction: refreshFunction,
           },
         },
@@ -950,7 +917,7 @@ const Page = () => {
           {
             id: 1,
             cardLabelBox: {
-              cardLabelBoxHeader: <Devices />,
+              cardLabelBoxHeader: <CippIcons.Devices />,
             },
             text: 'Managed Devices',
             subtext: 'List of devices managed for this user',
@@ -969,9 +936,10 @@ const Page = () => {
               ],
               actions: [
                 {
-                  icon: <EyeIcon />,
+                  icon: <CippIcons.EyeIcon />,
                   label: 'View Device',
                   link: `/endpoint/MEM/devices/device?deviceId=[id]&tenantFilter=${userSettingsDefaults.currentTenant}`,
+                  pinned: true,
                 },
               ],
             },
@@ -1079,9 +1047,10 @@ const Page = () => {
                 />
                 <Stack
                   direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                >
+                  sx={{
+                    justifyContent: "space-between",
+                    alignItems: "center"
+                  }}>
                   <Typography variant="h6">
                     Multi-Factor Authentication Devices
                   </Typography>
@@ -1089,7 +1058,7 @@ const Page = () => {
                     <Button
                       size="small"
                       variant="outlined"
-                      startIcon={<LockPerson />}
+                      startIcon={<CippIcons.LockPerson />}
                       disabled={defaultMethodOptions.length === 0}
                       title={
                         defaultMethodOptions.length === 0
@@ -1114,7 +1083,7 @@ const Page = () => {
                   isCollapsible={true}
                 />
                 <CippBannerListCard
-                  isFetching={userBulkRequest.isPending}
+                  isFetching={roleAssignments.isFetching}
                   items={roleMembershipItems}
                   isCollapsible={true}
                 />
@@ -1172,7 +1141,7 @@ const Page = () => {
         }}
       />
     </HeaderedTabbedLayout>
-  )
+  );
 }
 
 Page.getLayout = (page) => <DashboardLayout>{page}</DashboardLayout>

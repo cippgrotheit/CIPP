@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { CippIcons } from '../../utils/icon-registry'
 import {
   Autocomplete,
   Box,
@@ -11,7 +12,6 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import { Download, PictureAsPdf } from '@mui/icons-material'
 import {
   Document,
   Page,
@@ -401,7 +401,7 @@ export const CippBaselineWhatIfReport = ({
       <Tooltip title="Preview what applying the configured standards would change for this tenant, including upcoming stages">
         <Button
           variant="contained"
-          startIcon={<PictureAsPdf />}
+          startIcon={<CippIcons.PictureAsPdf />}
           onClick={() => setOpen(true)}
         >
           What-If Report
@@ -455,14 +455,16 @@ export const CippBaselineWhatIfReport = ({
           sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider', gap: 1 }}
         >
           <Box sx={{ flex: 1 }}>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="caption" sx={{
+              color: "text.secondary"
+            }}>
               Exec-friendly preview - safe to send to customers. No changes are
               made.
             </Typography>
           </Box>
           <Button
             variant="contained"
-            startIcon={<Download />}
+            startIcon={<CippIcons.Download />}
             onClick={handleDownload}
           >
             Download PDF
@@ -473,7 +475,7 @@ export const CippBaselineWhatIfReport = ({
         </DialogActions>
       </Dialog>
     </>
-  )
+  );
 }
 
 export default CippBaselineWhatIfReport

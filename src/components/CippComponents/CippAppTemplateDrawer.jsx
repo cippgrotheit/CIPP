@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback, useState } from 'react'
+import { CippIcons } from '../../utils/icon-registry'
 import {
   Button,
   Divider,
@@ -13,7 +14,6 @@ import {
 } from '@mui/material'
 import { Grid } from '@mui/system'
 import { useForm, useWatch } from 'react-hook-form'
-import { Add, Delete, Edit, Save } from '@mui/icons-material'
 import { CippOffCanvas } from './CippOffCanvas'
 import CippFormComponent from './CippFormComponent'
 import { CippFormCondition } from './CippFormCondition'
@@ -26,6 +26,7 @@ const appTypeLabels = {
   StoreApp: 'Store App',
   chocolateyApp: 'Chocolatey App',
   officeApp: 'Microsoft Office',
+  edgeApp: 'Microsoft Edge',
   win32ScriptApp: 'Custom Application',
 }
 
@@ -146,6 +147,7 @@ export const CippAppTemplateDrawer = ({
     const type = formData.appType?.value
     if (type === 'mspApp') return formData.displayName || formData.rmmname?.label || 'MSP App'
     if (type === 'officeApp') return 'Microsoft 365 Apps'
+    if (type === 'edgeApp') return 'Microsoft Edge'
     return formData.applicationName || formData.packagename || 'Unnamed App'
   }
 
@@ -282,7 +284,7 @@ export const CippAppTemplateDrawer = ({
   return (
     <>
       {!onClose && (
-        <Button onClick={() => setDrawerVisible(true)} startIcon={<Add />}>
+        <Button onClick={() => setDrawerVisible(true)} startIcon={<CippIcons.Add />}>
           {buttonText}
         </Button>
       )}
@@ -298,7 +300,7 @@ export const CippAppTemplateDrawer = ({
               color="primary"
               onClick={handleSaveTemplate}
               disabled={getTotalApps() === 0 || saveTemplate.isPending}
-              startIcon={<Save />}
+              startIcon={<CippIcons.Save />}
             >
               {saveTemplate.isPending
                 ? 'Saving...'
@@ -353,10 +355,10 @@ export const CippAppTemplateDrawer = ({
                     <ListItemText primary={app.appName} />
                     <ListItemSecondaryAction>
                       <IconButton onClick={() => handleEditApp(index)} size="small">
-                        <Edit fontSize="small" />
+                        <CippIcons.Edit fontSize="small" />
                       </IconButton>
                       <IconButton edge="end" onClick={() => handleRemoveApp(index)} size="small">
-                        <Delete fontSize="small" />
+                        <CippIcons.Delete fontSize="small" />
                       </IconButton>
                     </ListItemSecondaryAction>
                   </ListItem>
@@ -383,6 +385,7 @@ export const CippAppTemplateDrawer = ({
                 { label: 'Store App', value: 'StoreApp' },
                 { label: 'Chocolatey App', value: 'chocolateyApp' },
                 { label: 'Microsoft Office', value: 'officeApp' },
+                { label: 'Microsoft Edge', value: 'edgeApp' },
                 { label: 'Custom Application', value: 'win32ScriptApp' },
               ]}
               multiple={false}
@@ -617,6 +620,13 @@ export const CippAppTemplateDrawer = ({
             <Grid size={{ xs: 12 }}>
               <CippFormComponent
                 type="switch"
+                label="Install as system"
+                name="InstallAsSystem"
+                formControl={formControl}
+                defaultValue={true}
+              />
+              <CippFormComponent
+                type="switch"
                 label="Mark for Uninstallation"
                 name="InstallationIntent"
                 formControl={formControl}
@@ -849,6 +859,43 @@ export const CippAppTemplateDrawer = ({
             </CippFormCondition>
           </CippFormCondition>
 
+          {/* Edge App Fields */}
+          <CippFormCondition
+            formControl={formControl}
+            field="appType.value"
+            compareType="is"
+            compareValue="edgeApp"
+          >
+            <Grid size={{ md: 6, xs: 12 }}>
+              <CippFormComponent
+                type="autoComplete"
+                label="Edge Channel"
+                name="edgeChannel"
+                options={[
+                  { value: 'stable', label: 'Stable' },
+                  { value: 'beta', label: 'Beta' },
+                  { value: 'dev', label: 'Dev' },
+                ]}
+                multiple={false}
+                formControl={formControl}
+                validators={{ required: 'Please select an Edge channel' }}
+              />
+            </Grid>
+            <Grid size={{ md: 6, xs: 12 }}>
+              <CippFormComponent
+                type="autoComplete"
+                label="Display Language (optional)"
+                name="displayLanguageLocale"
+                options={languageList.map(({ language, tag }) => ({
+                  value: tag,
+                  label: `${language} (${tag})`,
+                }))}
+                multiple={false}
+                formControl={formControl}
+              />
+            </Grid>
+          </CippFormCondition>
+
           {/* Win32 Script App Fields */}
           <CippFormCondition
             formControl={formControl}
@@ -995,10 +1042,10 @@ export const CippAppTemplateDrawer = ({
                 name="AssignTo"
                 label="Assignment"
                 options={[
-                  { label: 'Do not assign', value: 'On' },
-                  { label: 'Assign to all users', value: 'allLicensedUsers' },
-                  { label: 'Assign to all devices', value: 'AllDevices' },
-                  { label: 'Assign to all users and devices', value: 'AllDevicesAndUsers' },
+                  { label: 'Do Not Assign', value: 'On' },
+                  { label: 'Assign to All Users', value: 'allLicensedUsers' },
+                  { label: 'Assign to All Devices', value: 'AllDevices' },
+                  { label: 'Assign to All Users and Devices', value: 'AllDevicesAndUsers' },
                   { label: 'Assign to Custom Group', value: 'customGroup' },
                 ]}
                 formControl={formControl}
@@ -1040,7 +1087,7 @@ export const CippAppTemplateDrawer = ({
           {/* Add App Button */}
           {applicationType?.value && (
             <Grid size={{ xs: 12 }}>
-              <Button variant="outlined" onClick={handleAddApp} startIcon={<Add />}>
+              <Button variant="outlined" onClick={handleAddApp} startIcon={<CippIcons.Add />}>
                 Add App to Template
               </Button>
             </Grid>

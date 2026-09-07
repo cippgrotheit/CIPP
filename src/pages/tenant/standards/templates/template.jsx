@@ -1,9 +1,9 @@
 import { Box, Button, Container, Stack, Typography, SvgIcon, Skeleton } from '@mui/material'
+import { CippIcons } from '../../../../utils/icon-registry'
 import { Grid } from '@mui/system'
-import { Layout as DashboardLayout } from '../../../../layouts/index.js'
+import { Layout as DashboardLayout } from '../../../../layouts/index'
 import { useForm, useWatch } from 'react-hook-form'
 import { useRouter } from 'next/router'
-import { Add, SaveRounded } from '@mui/icons-material'
 import { useEffect, useState, useCallback, useMemo, useRef, lazy, Suspense } from 'react'
 import standards from '../../../../data/standards'
 import CippStandardAccordion from '../../../../components/CippStandards/CippStandardAccordion'
@@ -16,7 +16,7 @@ import { ArrowLeftIcon } from '@mui/x-date-pickers'
 import { useDialog } from '../../../../hooks/use-dialog'
 import { ApiGetCall } from '../../../../api/ApiCall'
 import { get } from 'lodash'
-import { createDriftManagementActions } from '../../manage/driftManagementActions'
+import { createDriftManagementActions } from '../../../../components/CippComponents/CippDriftManagementActions'
 import { ActionsMenu } from '../../../../components/actions-menu'
 import { useSettings } from '../../../../hooks/use-settings'
 import { CippHead } from '../../../../components/CippComponents/CippHead'
@@ -368,11 +368,12 @@ const Page = () => {
       <Stack spacing={2}>
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
-          justifyContent="space-between"
-          alignItems={{ xs: 'stretch', sm: 'center' }}
           spacing={{ xs: 2, sm: 4 }}
-          sx={{ mb: 3 }}
-        >
+          sx={{
+            justifyContent: "space-between",
+            alignItems: { xs: 'stretch', sm: 'center' },
+            mb: 3
+          }}>
           <Typography variant="h4">
             {editMode
               ? isDriftMode
@@ -392,7 +393,7 @@ const Page = () => {
               variant="contained"
               color="primary"
               onClick={handleSave}
-              startIcon={<SaveRounded />}
+              startIcon={<CippIcons.SaveRounded />}
               disabled={isSaveDisabled}
             >
               Save Template
@@ -401,7 +402,7 @@ const Page = () => {
               variant="outlined"
               color="primary"
               onClick={handleOpenDialog}
-              startIcon={<Add />}
+              startIcon={<CippIcons.Add />}
             >
               Add Standard to Template
             </Button>
@@ -479,7 +480,7 @@ const Page = () => {
         </Suspense>
       )}
     </Box>
-  )
+  );
 }
 
 Page.getLayout = (page) => <DashboardLayout>{page}</DashboardLayout>

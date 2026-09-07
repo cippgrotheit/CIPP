@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { CippIcons } from "../../utils/icon-registry";
 import { useFieldArray, useWatch, Controller } from "react-hook-form";
 import {
   Box,
@@ -20,19 +21,6 @@ import {
   Typography,
   Button,
 } from "@mui/material";
-import {
-  Add,
-  Category,
-  Delete,
-  Folder,
-  Label,
-  Lock,
-  MoreVert,
-  Translate,
-  VpnKey,
-  ViewColumn,
-  Web,
-} from "@mui/icons-material";
 import CippFormComponent from "./CippFormComponent";
 import { CippSharePointPermissionEditor } from "./CippSharePointPermissionEditor";
 import SharePointIcon from "../../icons/iconly/bulk/sharepoint";
@@ -201,7 +189,7 @@ const LibraryRow = ({ formControl, name, onRemove, onConfigurePermissions }) => 
       }}
     >
       <Tooltip title={missingName ? "Library name required" : "Document library"}>
-        <Folder fontSize="small" sx={{ color: missingName ? "error.main" : "text.secondary" }} />
+        <CippIcons.Folder fontSize="small" sx={{ color: missingName ? "error.main" : "text.secondary" }} />
       </Tooltip>
       <Controller
         name={`${name}.name`}
@@ -219,7 +207,7 @@ const LibraryRow = ({ formControl, name, onRemove, onConfigurePermissions }) => 
       />
       {permCount > 0 && (
         <Tooltip title={`${permCount} unique permission${permCount > 1 ? "s" : ""}`}>
-          <Lock fontSize="small" sx={{ color: "warning.main" }} />
+          <CippIcons.Lock fontSize="small" sx={{ color: "warning.main" }} />
         </Tooltip>
       )}
       <Tooltip title="Library actions">
@@ -228,7 +216,7 @@ const LibraryRow = ({ formControl, name, onRemove, onConfigurePermissions }) => 
           aria-label="Library actions"
           onClick={(e) => setAnchorEl(e.currentTarget)}
         >
-          <MoreVert fontSize="small" />
+          <CippIcons.MoreVert fontSize="small" />
         </IconButton>
       </Tooltip>
       <Menu anchorEl={anchorEl} open={openMenu} onClose={() => setAnchorEl(null)}>
@@ -239,7 +227,7 @@ const LibraryRow = ({ formControl, name, onRemove, onConfigurePermissions }) => 
           }}
         >
           <ListItemIcon>
-            <VpnKey fontSize="small" />
+            <CippIcons.VpnKey fontSize="small" />
           </ListItemIcon>
           <ListItemText>{permCount > 0 ? "Edit Permissions" : "Add Permissions"}</ListItemText>
         </MenuItem>
@@ -247,7 +235,7 @@ const LibraryRow = ({ formControl, name, onRemove, onConfigurePermissions }) => 
           <span>
             <MenuItem disabled>
               <ListItemIcon>
-                <ViewColumn fontSize="small" />
+                <CippIcons.ViewColumn fontSize="small" />
               </ListItemIcon>
               <ListItemText>Add Column</ListItemText>
             </MenuItem>
@@ -257,7 +245,7 @@ const LibraryRow = ({ formControl, name, onRemove, onConfigurePermissions }) => 
           <span>
             <MenuItem disabled>
               <ListItemIcon>
-                <Label fontSize="small" />
+                <CippIcons.Label fontSize="small" />
               </ListItemIcon>
               <ListItemText>Manage Metadata</ListItemText>
             </MenuItem>
@@ -272,7 +260,7 @@ const LibraryRow = ({ formControl, name, onRemove, onConfigurePermissions }) => 
           sx={{ color: "error.main" }}
         >
           <ListItemIcon>
-            <Delete fontSize="small" sx={{ color: "error.main" }} />
+            <CippIcons.Delete fontSize="small" sx={{ color: "error.main" }} />
           </ListItemIcon>
           <ListItemText>Remove Library</ListItemText>
         </MenuItem>
@@ -297,11 +285,15 @@ const SiteTypeDialog = ({ formControl, name, overrideActive, onClose }) => (
             disabled={overrideActive}
           />
           {overrideActive ? (
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" sx={{
+              color: "text.secondary"
+            }}>
               Template override is active — all sites use the template site type at deploy.
             </Typography>
           ) : (
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" sx={{
+              color: "text.secondary"
+            }}>
               Choose whether this entry provisions a SharePoint site or a Microsoft Team.
             </Typography>
           )}
@@ -344,7 +336,9 @@ const SiteLanguageDialog = ({ formControl, name, onClose }) => {
               creatable={false}
               disableClearable={true}
             />
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" sx={{
+              color: "text.secondary"
+            }}>
               Tenant default follows each target tenant&apos;s SharePoint root site language
               (the SPO default for new sites) at deploy. A specific language is applied when
               the SharePoint site is created.
@@ -384,7 +378,9 @@ const CreateAsDialog = ({ formControl, name, onClose }) => {
               formControl={formControl}
               options={CREATE_AS_OPTIONS}
             />
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" sx={{
+              color: "text.secondary"
+            }}>
               Team site is a collaboration workspace. Communication site is for publishing
               (intranet, news). Only applies when this card deploys as a SharePoint site.
             </Typography>
@@ -538,7 +534,7 @@ const SiteTemplateCard = ({ formControl, name, index, onRemove, onConfigurePermi
               onClick={() => onConfigurePermissions()}
               sx={{ color: permCount > 0 ? "#fff" : "error.main" }}
             >
-              <Lock fontSize="small" />
+              <CippIcons.Lock fontSize="small" />
             </IconButton>
           </Tooltip>
           <Tooltip title="Site actions">
@@ -548,7 +544,7 @@ const SiteTemplateCard = ({ formControl, name, index, onRemove, onConfigurePermi
               onClick={(e) => setAnchorEl(e.currentTarget)}
               sx={{ color: "#fff" }}
             >
-              <MoreVert fontSize="small" />
+              <CippIcons.MoreVert fontSize="small" />
             </IconButton>
           </Tooltip>
         </Box>
@@ -579,7 +575,7 @@ const SiteTemplateCard = ({ formControl, name, index, onRemove, onConfigurePermi
             }}
           >
             <ListItemIcon>
-              <VpnKey fontSize="small" />
+              <CippIcons.VpnKey fontSize="small" />
             </ListItemIcon>
             <ListItemText>{permCount > 0 ? "Edit Site Permissions" : "Add Site Permissions"}</ListItemText>
           </MenuItem>
@@ -592,7 +588,7 @@ const SiteTemplateCard = ({ formControl, name, index, onRemove, onConfigurePermi
             }}
           >
             <ListItemIcon>
-              <Category fontSize="small" />
+              <CippIcons.Category fontSize="small" />
             </ListItemIcon>
             <ListItemText
               primary="Change Site Type"
@@ -607,7 +603,7 @@ const SiteTemplateCard = ({ formControl, name, index, onRemove, onConfigurePermi
               }}
             >
               <ListItemIcon>
-                <Translate fontSize="small" />
+                <CippIcons.Translate fontSize="small" />
               </ListItemIcon>
               <ListItemText primary="Site Language" />
             </MenuItem>
@@ -620,7 +616,7 @@ const SiteTemplateCard = ({ formControl, name, index, onRemove, onConfigurePermi
               }}
             >
               <ListItemIcon>
-                <Web fontSize="small" />
+                <CippIcons.Web fontSize="small" />
               </ListItemIcon>
               <ListItemText primary="Create as" />
             </MenuItem>
@@ -634,7 +630,7 @@ const SiteTemplateCard = ({ formControl, name, index, onRemove, onConfigurePermi
             sx={{ color: "error.main" }}
           >
             <ListItemIcon>
-              <Delete fontSize="small" sx={{ color: "error.main" }} />
+              <CippIcons.Delete fontSize="small" sx={{ color: "error.main" }} />
             </ListItemIcon>
             <ListItemText>Remove Site Template</ListItemText>
           </MenuItem>
@@ -702,7 +698,7 @@ const SiteTemplateCard = ({ formControl, name, index, onRemove, onConfigurePermi
               "&:hover": { bgcolor: "action.hover" },
             }}
           >
-            <Add fontSize="small" />
+            <CippIcons.Add fontSize="small" />
             <Typography variant="body2">Add Library</Typography>
           </Box>
         </Stack>
@@ -747,7 +743,9 @@ const AddSiteCard = ({ onAddSharePoint, onAddTeams }) => (
       borderWidth: 2,
     }}
   >
-    <Typography variant="subtitle2" textAlign="center">
+    <Typography variant="subtitle2" sx={{
+      textAlign: "center"
+    }}>
       Add New Site Template
     </Typography>
     <Box sx={{ display: "flex", gap: 1.5 }}>
@@ -792,7 +790,9 @@ const AddSiteCard = ({ onAddSharePoint, onAddTeams }) => (
 // Small stat tile used by the Quick Stats panel.
 const Stat = ({ label, value }) => (
   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", py: 0.5 }}>
-    <Typography variant="body2" color="text.secondary">
+    <Typography variant="body2" sx={{
+      color: "text.secondary"
+    }}>
       {label}
     </Typography>
     <Typography variant="h6">{value}</Typography>
@@ -886,7 +886,9 @@ const SiteTypeOverrideDialog = ({ formControl, open, onClose }) => {
       <DialogTitle>Override site types</DialogTitle>
       <DialogContent dividers>
         <Stack spacing={1.5}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{
+            color: "text.secondary"
+          }}>
             Force every site in this template to deploy as the same type, ignoring each card&apos;s
             own site type.
           </Typography>
@@ -905,7 +907,9 @@ const SiteTypeOverrideDialog = ({ formControl, open, onClose }) => {
             disabled={!overrideActive}
           />
           {!overrideActive && (
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="caption" sx={{
+              color: "text.secondary"
+            }}>
               Turn on the override to choose the type applied to every site.
             </Typography>
           )}
@@ -948,16 +952,22 @@ export const CippSharePointTemplateBuilder = ({ formControl }) => {
       >
         <Box sx={{ minWidth: 0 }}>
           <Typography variant="h5">Site Templates</Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{
+            color: "text.secondary"
+          }}>
             Each site template provisions a SharePoint site or Microsoft Team and its document
             libraries.
           </Typography>
           {overrideActive && (
             <Typography
               variant="caption"
-              color="warning.main"
-              sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.75 }}
-            >
+              sx={{
+                color: "warning.main",
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                mt: 0.75
+              }}>
               <OverrideIcon sx={{ fontSize: 14 }} />
               Site type override active — all sites deploy as{" "}
               {resolveSiteType(templateSiteType) === "teams" ? "Microsoft Teams" : "SharePoint sites"}.
@@ -970,7 +980,7 @@ export const CippSharePointTemplateBuilder = ({ formControl }) => {
               aria-label="Site template actions"
               onClick={(e) => setActionsAnchor(e.currentTarget)}
             >
-              <MoreVert />
+              <CippIcons.MoreVert />
             </IconButton>
           </Tooltip>
           <Menu
@@ -985,7 +995,7 @@ export const CippSharePointTemplateBuilder = ({ formControl }) => {
               }}
             >
               <ListItemIcon>
-                <Category fontSize="small" />
+                <CippIcons.Category fontSize="small" />
               </ListItemIcon>
               <ListItemText primary="Override site types…" />
             </MenuItem>

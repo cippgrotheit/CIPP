@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import { CippIcons } from '../../utils/icon-registry'
 import {
   Accordion,
   AccordionSummary,
@@ -13,10 +14,6 @@ import {
   Stack,
 } from '@mui/material'
 import { Grid } from '@mui/system'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
-import VisibilityIcon from '@mui/icons-material/Visibility'
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import { PropertyListItem } from '../property-list-item'
 import { PropertyList } from '../property-list'
 import { getCippTranslation } from '../../utils/get-cipp-translation'
@@ -395,7 +392,7 @@ function CippJsonView({
               sx={{ p: 0.25, color: 'text.secondary' }}
               onClick={(event) => event.stopPropagation()}
             >
-              <InfoOutlinedIcon fontSize="inherit" />
+              <CippIcons.InfoOutlined fontSize="inherit" />
             </IconButton>
           </Tooltip>
         </Box>
@@ -525,12 +522,16 @@ function CippJsonView({
                 {getStatusText(value.enabled)}
               </Typography>
               {categoryPath && (
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption" sx={{
+                  color: "text.secondary"
+                }}>
                   {categoryPath}
                 </Typography>
               )}
               {!definition && definitionId && (
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption" sx={{
+                  color: "text.secondary"
+                }}>
                   Definition ID: {definitionId}
                 </Typography>
               )}
@@ -744,7 +745,9 @@ function CippJsonView({
             key="added-loading"
             label="Administrative Template"
             value={
-              <Stack direction="row" spacing={1} alignItems="center">
+              <Stack direction="row" spacing={1} sx={{
+                alignItems: "center"
+              }}>
                 <CircularProgress size={16} />
                 <Typography variant="body2">Resolving administrative template settings...</Typography>
               </Stack>
@@ -1013,10 +1016,16 @@ function CippJsonView({
       onChange={() => setAccordionOpen(!accordionOpen)}
     >
       <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
+        expandIcon={<CippIcons.ExpandMore />}
         sx={{ display: 'flex', alignItems: 'center' }}
       >
-        <Stack direction="row" spacing={1} alignItems="space-between" sx={{ width: '100%' }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            alignItems: "space-between",
+            width: '100%'
+          }}>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             {title}
           </Typography>
@@ -1029,7 +1038,7 @@ function CippJsonView({
       </AccordionSummary>
       <AccordionDetails>
         <IconButton onClick={toggleView} sx={{ ml: 1 }}>
-          {viewJson ? <VisibilityOffIcon /> : <VisibilityIcon />}
+          {viewJson ? <CippIcons.VisibilityOff /> : <CippIcons.Visibility />}
         </IconButton>
         {viewJson ? (
           <CippCodeBlock type="editor" code={JSON.stringify(cleanObject(object), null, 2)} />
@@ -1077,7 +1086,7 @@ function CippJsonView({
         )}
       </AccordionDetails>
     </Accordion>
-  )
+  );
 }
 
 export default CippJsonView

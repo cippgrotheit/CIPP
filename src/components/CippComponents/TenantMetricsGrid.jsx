@@ -1,13 +1,6 @@
 import { Box, Grid, Tooltip, Avatar, Typography, Skeleton } from '@mui/material'
+import { CippIcons } from '../../utils/icon-registry'
 import { useRouter } from 'next/router'
-import {
-  Person as UserIcon,
-  PersonOutline as GuestIcon,
-  Group as GroupIcon,
-  Apps as AppsIcon,
-  Devices as DevicesIcon,
-  PhoneAndroid as ManagedIcon,
-} from '@mui/icons-material'
 
 const formatNumber = (num) => {
   if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
@@ -22,42 +15,42 @@ export const TenantMetricsGrid = ({ data, isLoading }) => {
     {
       label: 'Users',
       value: data?.UserCount || 0,
-      icon: UserIcon,
+      icon: CippIcons.Person,
       color: 'primary',
       path: '/identity/administration/users',
     },
     {
       label: 'Guests',
       value: data?.GuestCount || 0,
-      icon: GuestIcon,
+      icon: CippIcons.PersonOutlined,
       color: 'info',
       path: '/identity/administration/users',
     },
     {
       label: 'Groups',
       value: data?.GroupCount || 0,
-      icon: GroupIcon,
+      icon: CippIcons.Group,
       color: 'secondary',
       path: '/identity/administration/groups',
     },
     {
       label: 'Service Principals',
       value: data?.ApplicationCount || 0,
-      icon: AppsIcon,
+      icon: CippIcons.Apps,
       color: 'error',
       path: '/tenant/administration/applications/enterprise-apps',
     },
     {
       label: 'Devices',
       value: data?.DeviceCount || 0,
-      icon: DevicesIcon,
+      icon: CippIcons.Devices,
       color: 'warning',
       path: '/identity/administration/devices',
     },
     {
       label: 'Managed',
       value: data?.ManagedDeviceCount || 0,
-      icon: ManagedIcon,
+      icon: CippIcons.PhoneAndroid,
       color: 'success',
       path: '/identity/administration/devices',
     },
@@ -122,15 +115,18 @@ export const TenantMetricsGrid = ({ data, isLoading }) => {
                 <Box sx={{ minWidth: 0 }}>
                   <Typography
                     variant="caption"
-                    color="text.secondary"
-                    fontSize={{ xs: '0.6rem', sm: '0.65rem', md: '0.7rem' }}
                     noWrap
-                  >
+                    sx={{
+                      color: "text.secondary",
+                      fontSize: { xs: '0.6rem', sm: '0.65rem', md: '0.7rem' }
+                    }}>
                     {metric.label}
                   </Typography>
                   <Typography
                     variant="h6"
-                    fontSize={{ xs: '0.9rem', sm: '1rem', md: '1.125rem' }}
+                    sx={{
+                      fontSize: { xs: '0.9rem', sm: '1rem', md: '1.125rem' }
+                    }}
                   >
                     {isLoading ? (
                       <Skeleton width={40} />
@@ -142,8 +138,8 @@ export const TenantMetricsGrid = ({ data, isLoading }) => {
               </Box>
             </Tooltip>
           </Grid>
-        )
+        );
       })}
     </Grid>
-  )
+  );
 }

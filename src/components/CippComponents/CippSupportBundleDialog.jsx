@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { CippIcons } from '../../utils/icon-registry'
 import {
   Alert,
   Button,
@@ -13,12 +14,6 @@ import {
   Switch,
   Typography,
 } from '@mui/material'
-import {
-  Download,
-  FiberManualRecord,
-  PlayArrow,
-  Stop,
-} from '@mui/icons-material'
 import { useQueryClient } from '@tanstack/react-query'
 import { useSettings } from '../../hooks/use-settings'
 import {
@@ -233,14 +228,18 @@ const CippSupportBundleDialog = ({ open, onClose, onRecordingChange }) => {
         )}
         {phase === 'recording' && (
           <Stack spacing={2}>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <FiberManualRecord color="error" />
+            <Stack direction="row" spacing={1} sx={{
+              alignItems: "center"
+            }}>
+              <CippIcons.FiberManualRecord color="error" />
               <Typography variant="body2">
                 Recording — {progress} request{progress === 1 ? '' : 's'}{' '}
                 captured so far.
               </Typography>
             </Stack>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="caption" sx={{
+              color: "text.secondary"
+            }}>
               Close this dialog, reproduce the issue, then click the recording
               indicator to come back and stop. Reloading the browser discards
               the recording.
@@ -248,9 +247,16 @@ const CippSupportBundleDialog = ({ open, onClose, onRecordingChange }) => {
           </Stack>
         )}
         {phase === 'collecting' && (
-          <Stack spacing={2} alignItems="center" sx={{ py: 2 }}>
+          <Stack
+            spacing={2}
+            sx={{
+              alignItems: "center",
+              py: 2
+            }}>
             <CircularProgress />
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" sx={{
+              color: "text.secondary"
+            }}>
               Collecting — {progress} request{progress === 1 ? '' : 's'}{' '}
               captured...
             </Typography>
@@ -294,14 +300,14 @@ const CippSupportBundleDialog = ({ open, onClose, onRecordingChange }) => {
           <>
             <Button onClick={onClose}>Cancel</Button>
             <Button
-              startIcon={<FiberManualRecord />}
+              startIcon={<CippIcons.FiberManualRecord />}
               onClick={handleStartRecording}
             >
               Record Actions
             </Button>
             <Button
               variant="contained"
-              startIcon={<PlayArrow />}
+              startIcon={<CippIcons.PlayArrow />}
               onClick={handleCapturePage}
             >
               Capture This Page
@@ -315,7 +321,7 @@ const CippSupportBundleDialog = ({ open, onClose, onRecordingChange }) => {
             <Button
               variant="contained"
               color="error"
-              startIcon={<Stop />}
+              startIcon={<CippIcons.Stop />}
               onClick={handleStopRecording}
             >
               Stop &amp; Generate
@@ -329,7 +335,7 @@ const CippSupportBundleDialog = ({ open, onClose, onRecordingChange }) => {
             </Button>
             <Button
               variant="contained"
-              startIcon={<Download />}
+              startIcon={<CippIcons.Download />}
               disabled={phase !== 'ready'}
               onClick={() => downloadSupportBundle(bundle)}
             >
@@ -339,7 +345,7 @@ const CippSupportBundleDialog = ({ open, onClose, onRecordingChange }) => {
         )}
       </DialogActions>
     </Dialog>
-  )
+  );
 }
 
 export default CippSupportBundleDialog

@@ -6,12 +6,9 @@ import {
   SvgIcon,
   Typography,
 } from '@mui/material'
+import { CippIcons } from '../../utils/icon-registry'
 import { useState, useEffect } from 'react'
 import { CippWizardStepButtons } from './CippWizardStepButtons'
-import {
-  IdentificationIcon,
-  RocketLaunchIcon,
-} from '@heroicons/react/24/outline'
 
 export const CippWizardAutopilotTypeSelection = (props) => {
   const { onNextStep, formControl, currentStep, onPreviousStep } = props
@@ -54,14 +51,14 @@ export const CippWizardAutopilotTypeSelection = (props) => {
       label: 'Windows Autopilot',
       description:
         'Upload devices to Windows Autopilot using their serial number, product ID or hardware hash.',
-      icon: <RocketLaunchIcon />,
+      icon: <CippIcons.RocketLaunchIcon />,
     },
     {
       value: 'devicePrep',
       label: 'Device Preparation (Corporate Identifiers)',
       description:
         'Upload corporate device identifiers (manufacturer, model and serial number) so devices are recognized as corporate-owned and can enroll using Windows Autopilot device preparation.',
-      icon: <IdentificationIcon />,
+      icon: <CippIcons.IdentificationIcon />,
     },
   ]
 
@@ -69,7 +66,9 @@ export const CippWizardAutopilotTypeSelection = (props) => {
     <Stack spacing={3}>
       <Stack spacing={1}>
         <Typography variant="h6">Select Deployment Type</Typography>
-        <Typography color="text.secondary" variant="body2">
+        <Typography variant="body2" sx={{
+          color: "text.secondary"
+        }}>
           Choose how you want to register the devices for this tenant.
         </Typography>
       </Stack>
@@ -94,7 +93,9 @@ export const CippWizardAutopilotTypeSelection = (props) => {
               }}
             >
               <CardContent>
-                <Stack alignItems="center" direction="row" spacing={2}>
+                <Stack direction="row" spacing={2} sx={{
+                  alignItems: "center"
+                }}>
                   <Avatar
                     variant="rounded"
                     sx={{
@@ -108,14 +109,16 @@ export const CippWizardAutopilotTypeSelection = (props) => {
                   </Avatar>
                   <Stack spacing={1}>
                     <Typography variant="h6">{option.label}</Typography>
-                    <Typography color="text.secondary">
+                    <Typography sx={{
+                      color: "text.secondary"
+                    }}>
                       {option.description}
                     </Typography>
                   </Stack>
                 </Stack>
               </CardContent>
             </Card>
-          )
+          );
         })}
       </Stack>
       <CippWizardStepButtons
@@ -125,7 +128,7 @@ export const CippWizardAutopilotTypeSelection = (props) => {
         formControl={formControl}
       />
     </Stack>
-  )
+  );
 }
 
 export default CippWizardAutopilotTypeSelection

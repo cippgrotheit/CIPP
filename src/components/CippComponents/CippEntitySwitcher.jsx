@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { CippIcons } from "../../utils/icon-registry";
 import { useRouter } from "next/router";
 import {
   Box,
@@ -13,7 +14,6 @@ import {
   Typography,
 } from "@mui/material";
 import { visuallyHidden } from "@mui/utils";
-import { Check, KeyboardArrowDown, Search } from "@mui/icons-material";
 import { ApiGetCall } from "../../api/ApiCall";
 import { CippBottomSheet } from "./CippBottomSheet";
 import { useIsMobileLayout } from "../../hooks/use-breakpoint";
@@ -102,12 +102,14 @@ export const CippEntitySwitcher = ({
           placeholder={`Search ${entityNamePlural}...`}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search fontSize="small" />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <CippIcons.Search fontSize="small" />
+                </InputAdornment>
+              ),
+            }
           }}
         />
       </Box>
@@ -122,7 +124,13 @@ export const CippEntitySwitcher = ({
             </Box>
           ))}
         {!listRequest.isFetching && filtered.length === 0 && (
-          <Typography variant="body2" color="text.secondary" sx={{ px: 2, py: 2 }}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: "text.secondary",
+              px: 2,
+              py: 2
+            }}>
             No {entityNamePlural} match.
           </Typography>
         )}
@@ -137,12 +145,13 @@ export const CippEntitySwitcher = ({
               <ListItemText
                 primary={getPrimary(row)}
                 secondary={getSecondary?.(row)}
-                primaryTypographyProps={{ noWrap: true, variant: "body2", fontWeight: 500 }}
-                secondaryTypographyProps={{ noWrap: true, variant: "caption" }}
                 sx={{ my: 0, minWidth: 0 }}
-              />
+                slotProps={{
+                  primary: { noWrap: true, variant: "body2", fontWeight: 500 },
+                  secondary: { noWrap: true, variant: "caption" }
+                }} />
               {getId(row) === currentId && (
-                <Check fontSize="small" color="primary" sx={{ flexShrink: 0 }} />
+                <CippIcons.Check fontSize="small" color="primary" sx={{ flexShrink: 0 }} />
               )}
             </ListItemButton>
           ))}
@@ -181,13 +190,13 @@ export const CippEntitySwitcher = ({
             <Box component="span" sx={visuallyHidden}>
               switch {entityName}
             </Box>
-            <KeyboardArrowDown sx={{ flexShrink: 0, opacity: 0.7, fontSize: 20 }} />
+            <CippIcons.KeyboardArrowDown sx={{ flexShrink: 0, opacity: 0.7, fontSize: 20 }} />
           </>
         ) : (
           <>
             <Typography variant="h4" sx={{ minWidth: 0 }}>
               {title}
-              <KeyboardArrowDown
+              <CippIcons.KeyboardArrowDown
                 sx={{ opacity: 0.7, fontSize: 24, verticalAlign: "middle", ml: 0.75 }}
               />
             </Typography>

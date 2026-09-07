@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import { CippIcons } from '../../utils/icon-registry'
 import {
   Card,
   CardHeader,
@@ -10,7 +11,6 @@ import {
   AccordionSummary,
   AccordionDetails,
 } from '@mui/material'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useState } from 'react'
 
 export default function CippButtonCard({
@@ -44,7 +44,13 @@ export default function CippButtonCard({
         <>
           {title && (
             <>
-              <CardHeader action={cardActions} title={title} />
+              {/* Long titles (tenant domains) are one unbreakable token: without this they
+                  push the header action past the card edge at phone widths. */}
+              <CardHeader
+                action={cardActions}
+                title={title}
+                sx={{ '& .MuiCardHeader-content': { minWidth: 0, overflowWrap: 'anywhere' } }}
+              />
               <Divider />
             </>
           )}
@@ -58,7 +64,7 @@ export default function CippButtonCard({
       {component === 'accordion' && (
         <Accordion expanded={cardExpanded}>
           <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
+            expandIcon={<CippIcons.ExpandMore />}
             onClick={() => setCardExpanded(!cardExpanded)}
           >
             <CardHeader action={cardActions} title={title} sx={{ pl: 1, py: 0, flexGrow: 1 }} />
