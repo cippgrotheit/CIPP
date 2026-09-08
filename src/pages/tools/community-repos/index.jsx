@@ -44,6 +44,7 @@ const typeOptions = [
   { label: "Baseline", value: "BaselineTemplate" },
   { label: "Report Builder", value: "ReportBuilderTemplate" },
   { label: "Group", value: "GroupTemplate" },
+  { label: "PIM Role Settings", value: "PIMRoleSettingsTemplate" },
   { label: "Custom Test", value: "CustomTest" },
 ];
 
